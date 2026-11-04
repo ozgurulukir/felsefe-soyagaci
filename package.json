@@ -1,0 +1,12 @@
+{
+  "name": "felsefe-soyagaci",
+  "private": true,
+  "description": "Filozoflar Soyağacı — yalnızca bu sayfanın Tailwind derlemesi (site geneliyle ilişkisiz).",
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i css/tailwind.input.css -o css/tailwind.css --minify",
+    "dev": "tailwindcss -c tailwind.config.js -i css/tailwind.input.css -o css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="tr" class="h-full antialiased dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Felsefe Soyağacı — Düşünce Tarihi & Entelektüel Soykütük</title>
+
+    <!-- İlk boyamada (First Paint) tema titremesini (FOUC) önleyen başlatıcı -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("felsefe-theme");
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var isDark = saved ? saved === "dark" : prefersDark;
+          document.documentElement.classList.toggle("dark", isDark);
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+
+    <!-- CDN Kütüphaneleri (Vis-Network, Font Awesome, Leaflet Maps) — SRI ile bütünlük doğrulanır -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/standalone/umd/vis-network.min.js"
+      integrity="sha384-yxKDWWf0wwdUj/gPeuL11czrnKFQROnLgY8ll7En9NYoXibgg3C6NK/UDHNtUgWJ"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+      integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g"
+      crossorigin="anonymous"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="css/tailwind.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body
+    class="h-[100dvh] w-full canvas-atmosphere text-slate-900 dark:text-slate-100 relative overflow-hidden font-sans select-none"
+  >
+    <!-- Ana Görsel Ağ Alanı (Content Bleeds to Viewport Edges) -->
+    <main class="relative w-full h-full overflow-hidden">
+      <!-- Tam Ekran Vis Network Ağ Tuvali -->
+      <div
+        id="network-container"
+        class="w-full h-full"
+        aria-label="Felsefe Soyağacı İnteraktif Ağ Haritası"
+      ></div>
+
+      <!-- Tam Ekran Coğrafi Dünya Haritası (Leaflet) -->
+      <div
+        id="map-container"
+        class="w-full h-full absolute inset-0 hidden"
+        style="z-index: 1;"
+        aria-label="Felsefe Soyağacı Coğrafi Dünya Haritası"
+      ></div>
+
+      <!-- ÜST YÜZEN KOMUTA ADASI (Floating Command Dock) -->
+      <header
+        class="pointer-events-none absolute top-3 inset-x-3 sm:inset-x-5 z-30 flex flex-col items-center gap-2"
+      >
+        <!-- Ana Komuta Barı (Concentric Radius: outer rounded-2xl [16px] = p-2 [8px] + inner rounded-lg [8px]) -->
+        <div
+          class="relative z-30 pointer-events-auto floating-island w-full max-w-6xl rounded-2xl p-2 flex flex-wrap items-center justify-between gap-2.5"
+        >
+          <!-- Sol: Geri Butonu + Başlık + Canlı Sayaç -->
+          <div class="flex items-center gap-2.5 pl-1">
+            <a
+              href="/"
+              class="ui-pressable surface-card surface-card-interactive h-9 px-3 rounded-lg text-slate-700 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1.5 text-xs"
+              title="Ana Sayfaya Dön"
+              aria-label="Ana Sayfaya Dön"
+            >
+              <i class="fa-solid fa-arrow-left text-[11px]" aria-hidden="true"></i>
+              <span class="hidden md:inline font-medium">Ana Sayfa</span>
+            </a>
+
+            <div
+              class="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-500/20 via-amber-500/10 to-indigo-500/20 border border-amber-500/30 dark:border-amber-400/30 flex items-center justify-center shadow-inner"
+              aria-hidden="true"
+            >
+              <i class="fa-solid fa-landmark text-amber-700 dark:text-amber-300 text-sm"></i>
+            </div>
+
+            <div class="pr-1">
+              <div class="flex items-center gap-2">
+                <h1
+                  class="text-base sm:text-lg font-bold tracking-tight font-cinzel text-slate-900 dark:text-amber-50 text-balance leading-none"
+                >
+                  Felsefe Soyağacı
+                </h1>
+                <span
+                  id="header-stats-text"
+                  class="hidden xl:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium surface-card text-slate-600 dark:text-slate-300 tabular-nums"
+                >
+                  79 Düşünür • 136 Bağlantı
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block mt-0.5">
+                Antik Çağ’dan günümüze hoca–öğrenci ve entelektüel etki silsilesi
+              </p>
+            </div>
+          </div>
+
+          <!-- Sağ: Arama Kutusu & Araç Aksiyonları -->
+          <div class="flex items-center gap-1.5 flex-grow sm:flex-grow-0 justify-end">
+            <!-- Canlı Arama Inputu + "/" Kısayol Rozeti -->
+            <div class="relative flex-grow sm:flex-grow-0 w-44 sm:w-64">
+              <label for="search-input" class="sr-only">Filozof, kavram veya ekol ara</label>
+              <i
+                class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"
+                aria-hidden="true"
+              ></i>
+              <input
+                type="search"
+                id="search-input"
+                name="philosopher-search"
+                placeholder="Filozof, kavram veya ekol…"
+                aria-label="Filozof, kavram veya ekol ara"
+                role="combobox"
+                aria-expanded="false"
+                aria-controls="search-dropdown"
+                aria-autocomplete="list"
+                class="theme-input w-full h-9 rounded-lg pl-8 pr-8 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-amber-500 transition-colors"
+                autocomplete="off"
+              />
+              <kbd
+                id="search-shortcut-hint"
+                class="hidden sm:inline-flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-500 dark:text-slate-400 surface-card rounded pointer-events-none"
+                aria-hidden="true"
+                >/</kbd
+              >
+              <button
+                id="search-clear-btn"
+                type="button"
+                class="ui-pressable hidden absolute right-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 flex items-center justify-center text-xs"
+                title="Aramayı Temizle"
+                aria-label="Aramayı Temizle"
+              >
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+
+              <!-- Arama Sonuç Listesi (Concentric radius: outer rounded-xl [12px] = p-1 [4px] + inner rounded-lg [8px]) -->
+              <div
+                id="search-dropdown"
+                role="listbox"
+                aria-label="Arama Sonuçları"
+                class="hidden absolute left-0 right-0 top-full mt-2 max-h-72 overflow-y-auto overscroll-contain floating-island rounded-xl z-50 p-1 space-y-0.5"
+              ></div>
+            </div>
+
+            <!-- İki Filozof Arası Entelektüel Köprü (Pathfinder) Butonu -->
+            <button
+              id="pathfinder-toggle-btn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="pathfinder-bar"
+              class="ui-pressable h-9 pl-2.5 pr-3 bg-indigo-500/10 hover:bg-indigo-500/20 dark:bg-indigo-500/15 dark:hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-200 border border-indigo-500/25 dark:border-indigo-400/30 rounded-lg text-xs font-medium flex items-center gap-1.5"
+              title="İki filozof arasındaki entelektüel etki zincirini bul"
+            >
+              <i
+                class="fa-solid fa-route text-indigo-600 dark:text-indigo-400"
+                aria-hidden="true"
+              ></i>
+              <span class="hidden lg:inline">Etki Köprüsü</span>
+            </button>
+
+            <!-- Düzen Değiştirici (Dikey / Yatay / Serbest Ağ) -->
+            <div class="relative">
+              <button
+                id="layout-toggle-btn"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="layout-menu"
+                class="ui-pressable surface-card surface-card-interactive h-9 pl-2.5 pr-2.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
+                title="Görünüm Düzenini Değiştir"
+              >
+                <i
+                  class="fa-solid fa-sitemap text-amber-600 dark:text-amber-400"
+                  aria-hidden="true"
+                ></i>
+                <span id="current-layout-label" class="hidden md:inline">Dikey Ağaç</span>
+                <i
+                  class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5"
+                  aria-hidden="true"
+                ></i>
+              </button>
+
+              <div
+                id="layout-menu"
+                role="menu"
+                aria-label="Ağ Görünüm Düzeni"
+                class="hidden absolute right-0 top-full mt-2 w-52 floating-island rounded-xl z-50 p-1 space-y-0.5"
+              >
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="true"
+                  data-layout="UD"
+                  class="layout-choice-btn ui-pressable w-full text-left px-3 py-2 rounded-lg text-xs text-slate-700 dark:text-slate-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.07] flex items-center justify-between"
+                >
+                  <span
+                    ><i
+                      class="fa-solid fa-arrow-down-long mr-2 text-amber-600 dark:text-amber-400"
+                      aria-hidden="true"
+                    ></i>
+                    Dikey Soyağacı</span
+                  >
+                  <i
+                    class="fa-solid fa-check text-amber-600 dark:text-amber-400 layout-active-icon"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  data-layout="LR"
+                  class="layout-choice-btn ui-pressable w-full text-left px-3 py-2 rounded-lg text-xs text-slate-700 dark:text-slate-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.07] flex items-center justify-between"
+                >
+                  <span
+                    ><i
+                      class="fa-solid fa-arrow-right-long mr-2 text-indigo-600 dark:text-indigo-400"
+                      aria-hidden="true"
+                    ></i>
+                    Yatay Zaman Ağacı</span
+                  >
+                  <i
+                    class="fa-solid fa-check text-indigo-600 dark:text-indigo-400 hidden layout-active-icon"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  data-layout="free"
+                  class="layout-choice-btn ui-pressable w-full text-left px-3 py-2 rounded-lg text-xs text-slate-700 dark:text-slate-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.07] flex items-center justify-between"
+                >
+                  <span
+                    ><i
+                      class="fa-solid fa-circle-nodes mr-2 text-emerald-600 dark:text-emerald-400"
+                      aria-hidden="true"
+                    ></i>
+                    Serbest Ağ (Fizik)</span
+                  >
+                  <i
+                    class="fa-solid fa-check text-emerald-600 dark:text-emerald-400 hidden layout-active-icon"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  data-layout="geo"
+                  class="layout-choice-btn ui-pressable w-full text-left px-3 py-2 rounded-lg text-xs text-slate-700 dark:text-slate-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.07] flex items-center justify-between"
+                >
+                  <span
+                    ><i
+                      class="fa-solid fa-earth-americas mr-2 text-teal-600 dark:text-teal-400"
+                      aria-hidden="true"
+                    ></i>
+                    Dünya Haritası (Coğrafi Ağ)</span
+                  >
+                  <i
+                    class="fa-solid fa-check text-teal-600 dark:text-teal-400 hidden layout-active-icon"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Rastgele Filozof Keşfet Butonu -->
+            <button
+              id="random-btn"
+              type="button"
+              class="ui-pressable surface-card surface-card-interactive h-9 pl-2.5 pr-3 rounded-lg text-amber-700 dark:text-amber-300 text-xs font-medium flex items-center gap-1.5"
+              title="Rastgele bir filozofa odaklan"
+            >
+              <i class="fa-solid fa-dice text-amber-600 dark:text-amber-400" aria-hidden="true"></i>
+              <span class="hidden md:inline">Keşfet</span>
+            </button>
+
+            <!-- Tema Değiştirici (Dark / Light Toggle) -->
+            <button
+              id="theme-toggle-btn"
+              type="button"
+              class="ui-pressable surface-card surface-card-interactive w-9 h-9 rounded-lg text-slate-700 dark:text-amber-300 flex items-center justify-center"
+              title="Açık / Koyu Temayı Değiştir"
+              aria-label="Açık veya Koyu Temayı Değiştir"
+            >
+              <span class="theme-icon-slot w-4 h-4" aria-hidden="true">
+                <i class="fa-solid fa-sun text-xs text-amber-400 theme-icon-layer icon-sun"></i>
+                <i class="fa-solid fa-moon text-xs text-indigo-700 theme-icon-layer icon-moon"></i>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- İkinci Yüzen Hap Bar: Dönem Filtreleri (Segmented Floating Pill Dock) -->
+        <div
+          id="era-filter-bar"
+          role="toolbar"
+          aria-label="Tarihsel Dönem Filtreleri"
+          class="relative z-20 pointer-events-auto floating-island max-w-full rounded-full p-1 flex items-center gap-1 overflow-x-auto no-scrollbar text-xs"
+        >
+          <button
+            type="button"
+            aria-pressed="true"
+            data-era="all"
+            data-inactive-class="text-slate-700 dark:text-slate-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]"
+            class="era-filter-btn ui-pressable px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-semibold whitespace-nowrap shadow-sm tabular-nums flex items-center gap-1.5"
+          >
+            Tümü <span class="opacity-80 ml-0.5">(<span id="count-all">79</span>)</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed="false"
+            data-era="antik"
+            data-inactive-class="text-amber-800 dark:text-amber-300/90 hover:bg-amber-500/10"
+            class="era-filter-btn ui-pressable px-3 py-1 rounded-full text-amber-800 dark:text-amber-300/90 hover:bg-amber-500/10 whitespace-nowrap tabular-nums flex items-center gap-1.5"
+          >
+            <span
+              class="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400"
+              aria-hidden="true"
+            ></span>
+            Antik Yunan <span class="opacity-65">(<span id="count-antik">0</span>)</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed="false"
+            data-era="helenistik"
+            data-inactive-class="text-emerald-800 dark:text-emerald-300/90 hover:bg-emerald-500/10"
+            class="era-filter-btn ui-pressable px-3 py-1 rounded-full text-emerald-800 dark:text-emerald-300/90 hover:bg-emerald-500/10 whitespace-nowrap tabular-nums flex items-center gap-1.5"
+          >
+            <span
+              class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400"
+              aria-hidden="true"
+            ></span>
+            Helenistik & Roma <span class="opacity-65">(<span id="count-helenistik">0</span>)</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed="false"
+            data-era="ortacag"
+            data-inactive-class="text-sky-800 dark:text-sky-300/90 hover:bg-sky-500/10"
+            class="era-filter-btn ui-pressable px-3 py-1 rounded-full text-sky-800 dark:text-sky-300/90 hover:bg-sky-500/10 whitespace-nowrap tabular-nums flex items-center gap-1.5"
+          >
+            <span class="w-2 h-2 rounded-full bg-sky-500 dark:bg-sky-400" aria-hidden="true"></span>
+            Orta Çağ & İslam <span class="opacity-65">(<span id="count-ortacag">0</span>)</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed="false"
+            data-era="aydinlanma"
+            data-inactive-class="text-purple-800 dark:text-purple-300/90 hover:bg-purple-500/10"
+            class="era-filter-btn ui-pressable px-3 py-1 rounded-full text-purple-800 dark:text-purple-300/90 hover:bg-purple-500/10 whitespace-nowrap tabular-nums flex items-center gap-1.5"
+          >
+            <span
+              class="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400"
+              aria-hidden="true"
+            ></span>
+            Rönesans & Aydınlanma
+            <span class="opacity-65">(<span id="count-aydinlanma">0</span>)</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed="false"
+            data-era="19yy"
+            data-inactive-class="text-rose-800 dark:text-rose-300/90 hover:bg-rose-500/10"
+            class="era-filter-btn ui-pressable px-3 py-1 rounded-full text-rose-800 dark:text-rose-300/90 hover:bg-rose-500/10 whitespace-nowrap tabular-nums flex items-center gap-1.5"
+          >
+            <span
+              class="w-2 h-2 rounded-full bg-rose-500 dark:bg-rose-400"
+              aria-hidden="true"
+            ></span>
+            19. Yüzyıl <span class="opacity-65">(<span id="count-19yy">0</span>)</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed="false"
+            data-era="20yy"
+            data-inactive-class="text-orange-800 dark:text-orange-300/90 hover:bg-orange-500/10"
+            class="era-filter-btn ui-pressable px-3 py-1 rounded-full text-orange-800 dark:text-orange-300/90 hover:bg-orange-500/10 whitespace-nowrap tabular-nums flex items-center gap-1.5"
+          >
+            <span
+              class="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400"
+              aria-hidden="true"
+            ></span>
+            20. Yüzyıl & Çağdaş <span class="opacity-65">(<span id="count-20yy">0</span>)</span>
+          </button>
+        </div>
+
+        <!-- Üçüncü Yüzen Ada: İki Filozof Arası Entelektüel Köprü (Pathfinder) -->
+        <div
+          id="pathfinder-bar"
+          class="hidden relative z-10 pointer-events-auto floating-island w-full max-w-4xl rounded-2xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs"
+        >
+          <div class="flex flex-wrap items-center gap-2">
+            <span
+              class="font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 pl-1"
+            >
+              <i
+                class="fa-solid fa-route text-indigo-600 dark:text-indigo-400"
+                aria-hidden="true"
+              ></i>
+              Etki Köprüsü:
+            </span>
+            <label for="path-start-select" class="sr-only">Başlangıç Filozofu</label>
+            <select
+              id="path-start-select"
+              aria-label="Başlangıç Filozofu"
+              class="theme-input h-8 rounded-lg px-2.5 text-base sm:text-xs text-slate-800 dark:text-slate-200 focus:border-indigo-500"
+            ></select>
+            <button
+              id="path-swap-btn"
+              type="button"
+              class="ui-pressable surface-card surface-card-interactive w-8 h-8 rounded-lg text-indigo-700 dark:text-indigo-300 flex items-center justify-center"
+              title="Başlangıç ve Hedef Filozofu Yer Değiştir"
+              aria-label="Başlangıç ve Hedef Filozofu Yer Değiştir"
+            >
+              <i class="fa-solid fa-right-left text-[10px]" aria-hidden="true"></i>
+            </button>
+            <label for="path-end-select" class="sr-only">Hedef Filozof</label>
+            <select
+              id="path-end-select"
+              aria-label="Hedef Filozof"
+              class="theme-input h-8 rounded-lg px-2.5 text-base sm:text-xs text-slate-800 dark:text-slate-200 focus:border-indigo-500"
+            ></select>
+            <!-- Primary Action inside Pathfinder Bar -->
+            <button
+              id="path-find-btn"
+              type="button"
+              class="ui-pressable h-8 pl-2.5 pr-3 rounded-lg bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 dark:hover:bg-indigo-400 text-white dark:text-slate-950 font-semibold flex items-center gap-1.5 shadow-sm"
+            >
+              <i class="fa-solid fa-bolt text-[10px]" aria-hidden="true"></i> Zinciri Göster
+            </button>
+            <button
+              id="path-reset-btn"
+              type="button"
+              class="ui-pressable surface-card surface-card-interactive h-8 px-2.5 rounded-lg text-slate-700 dark:text-slate-300"
+            >
+              Temizle
+            </button>
+          </div>
+          <div
+            id="path-result-steps"
+            role="status"
+            aria-live="polite"
+            class="flex flex-wrap items-center gap-1 text-[11px] text-slate-700 dark:text-slate-300"
+          ></div>
+        </div>
+
+        <!-- Aktif Vurgu / Filtre Bildirim Rozeti (Polite Live Region) -->
+        <div
+          id="active-focus-banner"
+          role="status"
+          aria-live="polite"
+          class="hidden relative z-10 pointer-events-auto floating-island rounded-full pl-4 pr-1.5 py-1 flex items-center gap-2.5 text-xs"
+        >
+          <span
+            id="active-focus-text"
+            class="text-slate-800 dark:text-slate-200 font-medium tabular-nums"
+          ></span>
+          <button
+            id="clear-focus-btn"
+            type="button"
+            class="ui-pressable px-2.5 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1"
+          >
+            <i class="fa-solid fa-rotate-left text-[10px]" aria-hidden="true"></i> Tüm Ağı Göster
+          </button>
+        </div>
+      </header>
+
+      <!-- Sağ Alt: Tuval Navigasyon / Yakınlaştırma Araç Çubuğu -->
+      <!-- Concentric radius: outer rounded-2xl (16px) = p-1.5 (6px) + inner rounded-[10px] -->
+      <div
+        role="toolbar"
+        aria-label="Harita Görünüm Kontrolleri"
+        class="floating-island absolute right-4 bottom-4 z-20 flex flex-col gap-1.5 p-1.5 rounded-2xl"
+      >
+        <!-- Geo modda motor geçişi: Esri karoları ↔ yerleşik Atlas (vis-canvas) — yalnızca harita düzeninde görünür -->
+        <button
+          id="geo-mode-toggle-btn"
+          type="button"
+          aria-pressed="false"
+          class="ui-pressable surface-card surface-card-interactive w-9 h-9 rounded-[10px] text-slate-700 dark:text-slate-200 flex items-center justify-center hidden"
+          title="Yerleşik Atlas Görünümüne Geç"
+          aria-label="Yerleşik Atlas Görünümüne Geç"
+        >
+          <i class="fa-solid fa-atlas text-amber-600 dark:text-amber-400 text-xs" aria-hidden="true"></i>
+        </button>
+        <button
+          id="zoom-in-btn"
+          type="button"
+          class="ui-pressable surface-card surface-card-interactive w-9 h-9 rounded-[10px] text-slate-700 dark:text-slate-200 flex items-center justify-center"
+          title="Yakınlaştır (+)"
+          aria-label="Haritayı Yakınlaştır"
+        >
+          <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+        </button>
+        <button
+          id="zoom-out-btn"
+          type="button"
+          class="ui-pressable surface-card surface-card-interactive w-9 h-9 rounded-[10px] text-slate-700 dark:text-slate-200 flex items-center justify-center"
+          title="Uzaklaştır (−)"
+          aria-label="Haritayı Uzaklaştır"
+        >
+          <i class="fa-solid fa-minus text-xs" aria-hidden="true"></i>
+        </button>
+        <button
+          id="fit-btn"
+          type="button"
+          class="ui-pressable surface-card surface-card-interactive w-9 h-9 rounded-[10px] text-amber-600 dark:text-amber-400 flex items-center justify-center"
+          title="Görünümü Ortala ve Sığdır"
+          aria-label="Tüm Ağacı Ekrana Sığdır"
+        >
+          <i class="fa-solid fa-expand text-xs" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Sol Alt: Akıllı Gösterge & Rehber (Floating Legend Island) -->
+      <div
+        id="legend-card"
+        class="select-text floating-island absolute left-4 bottom-4 z-20 w-72 p-3.5 rounded-2xl text-xs"
+      >
+        <div class="flex items-center justify-between">
+          <span
+            class="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2 font-cinzel tracking-wide text-[11px] uppercase"
+          >
+            <span
+              class="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_#f59e0b]"
+              aria-hidden="true"
+            ></span>
+            Harita Rehberi
+          </span>
+          <button
+            id="legend-toggle-btn"
+            type="button"
+            aria-expanded="true"
+            aria-controls="legend-content"
+            class="ui-pressable w-7 h-7 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-black/[0.05] dark:hover:bg-white/[0.06] flex items-center justify-center text-xs"
+            title="Göstergeyi Küçült veya Büyüt"
+            aria-label="Göstergeyi Küçült veya Büyüt"
+          >
+            <i class="fa-solid fa-chevron-down text-[10px]" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <!-- Group with space, not lines -->
+        <div id="legend-content" class="mt-3 space-y-2.5">
+          <!-- Bağlantı Türleri & İletim Akışı -->
+          <div class="surface-card rounded-xl p-2.5 space-y-2">
+            <!-- Akış Yönü -->
+            <div class="flex items-center justify-between pb-1.5 border-b border-black/[0.06] dark:border-white/[0.06]">
+              <span class="text-slate-700 dark:text-slate-300 text-[11px] font-medium">İletim Yönü</span>
+              <span class="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-[10px]">
+                Öncül (Hoca) <i class="fa-solid fa-arrow-right text-[8px] text-amber-500" aria-hidden="true"></i> Ardıl (Öğrenci)
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-700 dark:text-slate-300 text-[11px]">Hoca – Öğrenci</span>
+              <span
+                class="flex items-center gap-1.5 text-[10px] text-amber-700 dark:text-amber-300 font-medium"
+              >
+                <span
+                  class="w-6 h-0.5 bg-amber-500 dark:bg-amber-400 rounded-full inline-block"
+                  aria-hidden="true"
+                ></span>
+                Düz Altın
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-700 dark:text-slate-300 text-[11px]">Entelektüel Etki</span>
+              <span
+                class="flex items-center gap-1.5 text-[10px] text-sky-700 dark:text-sky-300 font-medium"
+              >
+                <span
+                  class="w-6 h-0.5 border-b-2 border-dashed border-sky-600 dark:border-sky-400 inline-block"
+                  aria-hidden="true"
+                ></span>
+                Kesikli Mavi
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed text-pretty px-0.5">
+            <p>
+              <b class="text-slate-800 dark:text-slate-200">📍 Coğrafi Düğümler:</b> Düşünürlerin köken/odak kentleridir. Kavisli hatlar bilginin kıtalar arası intikalini simgeler.
+            </p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400">
+              Kenar üzerine gelerek aktarım yönünü (A ➔ B), düğümlere tıklayarak detaylı soykütüğünü görebilirsiniz.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAĞ YÜZEN DETAY PANELİ (Floating Sheet Drawer) -->
+      <aside
+        id="detail-drawer"
+        inert
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="drawer-name"
+        class="select-text drawer-transition floating-island absolute right-0 sm:right-3 top-0 sm:top-3 bottom-0 sm:bottom-3 w-full sm:w-[400px] md:w-[440px] sm:rounded-2xl z-50 transform translate-x-[105%] flex flex-col overflow-hidden"
+      >
+        <!-- Panel Üst Bar (Dönem Rozeti + Aksiyonlar) -->
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <span
+            id="drawer-era-badge"
+            class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30"
+          >
+            Dönem Bilgisi
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button
+              id="drawer-bridge-btn"
+              type="button"
+              class="ui-pressable surface-card surface-card-interactive pl-2.5 pr-3 py-1.5 rounded-lg text-indigo-700 dark:text-indigo-300 text-[11px] font-medium flex items-center gap-1.5"
+              title="Bu filozoftan başka bir filozofa etki zinciri bul"
+            >
+              <i
+                class="fa-solid fa-route text-[10px] text-indigo-600 dark:text-indigo-400"
+                aria-hidden="true"
+              ></i>
+              Köprü Kur
+            </button>
+            <button
+              id="drawer-close-btn"
+              type="button"
+              class="ui-pressable surface-card surface-card-interactive w-8 h-8 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center justify-center"
+              title="Paneli Kapat (Esc)"
+              aria-label="Detay Panelini Kapat"
+            >
+              <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel İçerik Alanı (Group with Space, Staggered Entrance, overscroll-contain) -->
+        <div
+          id="drawer-scroll-body"
+          class="flex-1 overflow-y-auto overscroll-contain px-5 pb-6 space-y-6"
+        >
+          <!-- 1. Grup: Başlık & Temel Künye -->
+          <div class="stagger-group">
+            <h2
+              id="drawer-name"
+              class="text-2xl sm:text-[26px] font-bold font-cinzel text-slate-900 dark:text-white tracking-tight text-balance leading-tight"
+            >
+              Filozof Adı
+            </h2>
+            <div
+              class="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500 dark:text-slate-400"
+            >
+              <span
+                id="drawer-dates"
+                class="text-amber-800 dark:text-amber-300 font-medium tabular-nums bg-amber-500/15 dark:bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/30 dark:border-amber-500/20"
+                >MÖ 000 – 000</span
+              >
+              <span
+                id="drawer-city"
+                class="surface-card px-2.5 py-0.5 rounded-md flex items-center gap-1.5 text-slate-700 dark:text-slate-300"
+              >
+                <i
+                  class="fa-solid fa-location-dot text-[10px] text-amber-600 dark:text-amber-400/80"
+                  aria-hidden="true"
+                ></i>
+                Doğum Yeri
+              </span>
+            </div>
+            <div
+              id="drawer-school"
+              class="mt-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 surface-card px-3.5 py-2 rounded-xl flex items-center gap-2"
+            >
+              Ekol Bilgisi
+            </div>
+          </div>
+
+          <!-- 2. Grup: Alıntı / Aforizma (Editorial Serif Blockquote) -->
+          <div
+            id="drawer-quote-box"
+            class="stagger-group relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.04] to-transparent border border-amber-500/25 dark:border-amber-400/20"
+          >
+            <i
+              class="fa-solid fa-quote-right absolute -right-2 -bottom-3 text-5xl text-amber-500/[0.10] dark:text-amber-400/[0.07] pointer-events-none"
+              aria-hidden="true"
+            ></i>
+            <p
+              id="drawer-quote"
+              class="relative text-[13px] italic text-slate-800 dark:text-amber-50/95 font-serif leading-relaxed text-pretty"
+            >
+              “Söz buraya gelecek.”
+            </p>
+          </div>
+
+          <!-- 3. Grup: Özet & Felsefi Önemi -->
+          <div class="stagger-group space-y-2">
+            <h3
+              class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-[0.06em] flex items-center gap-1.5"
+            >
+              <i
+                class="fa-solid fa-feather-pointed text-indigo-600 dark:text-indigo-400"
+                aria-hidden="true"
+              ></i>
+              Felsefi Önemi & Biyografi
+            </h3>
+            <p
+              id="drawer-summary"
+              class="text-[13px] text-slate-700 dark:text-slate-200/90 leading-[1.6] text-pretty surface-card p-4 rounded-2xl max-w-[68ch]"
+            >
+              Filozofun özeti burada yer alacak.
+            </p>
+          </div>
+
+          <!-- 4. Grup: Temel Kavramlar (Tıklanabilir Filtre Etiketleri) -->
+          <div class="stagger-group space-y-2">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-[0.06em] flex items-center gap-1.5"
+              >
+                <i
+                  class="fa-solid fa-lightbulb text-amber-600 dark:text-amber-400"
+                  aria-hidden="true"
+                ></i>
+                Temel Kavramlar
+              </h3>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400"
+                >Filtrelemek için seçin</span
+              >
+            </div>
+            <div id="drawer-concepts" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <!-- 5. Grup: Başlıca Eserleri -->
+          <div class="stagger-group space-y-2">
+            <h3
+              class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-[0.06em] flex items-center gap-1.5"
+            >
+              <i
+                class="fa-solid fa-scroll text-emerald-600 dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+              Başlıca Eserleri
+            </h3>
+            <ul
+              id="drawer-works"
+              class="surface-card rounded-2xl p-3 space-y-1.5 text-xs text-slate-700 dark:text-slate-200 leading-relaxed"
+            ></ul>
+          </div>
+
+          <!-- 6. Grup: Entelektüel Soyağacı Bağlantıları -->
+          <div class="stagger-group space-y-3">
+            <h3
+              class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-[0.06em] flex items-center gap-1.5"
+            >
+              <i
+                class="fa-solid fa-network-wired text-amber-600 dark:text-amber-400"
+                aria-hidden="true"
+              ></i>
+              Entelektüel Soykütük
+            </h3>
+
+            <div class="grid grid-cols-1 gap-2.5">
+              <!-- Etkilendikleri (Öncülleri / Hocaları) -->
+              <div class="surface-card rounded-2xl p-3.5 space-y-2">
+                <div
+                  class="text-[11px] font-medium text-amber-800 dark:text-amber-300/90 flex items-center gap-1.5"
+                >
+                  <i class="fa-solid fa-arrow-turn-up text-[10px]" aria-hidden="true"></i> Öncülleri
+                  & Hocaları
+                </div>
+                <div id="drawer-teachers" class="flex flex-wrap gap-1.5"></div>
+              </div>
+
+              <!-- Etkiledikleri (Ardılları / Öğrencileri) -->
+              <div class="surface-card rounded-2xl p-3.5 space-y-2">
+                <div
+                  class="text-[11px] font-medium text-emerald-800 dark:text-emerald-300/90 flex items-center gap-1.5"
+                >
+                  <i class="fa-solid fa-arrow-turn-down text-[10px]" aria-hidden="true"></i>
+                  Ardılları & Öğrencileri
+                </div>
+                <div id="drawer-students" class="flex flex-wrap gap-1.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Alt Butonlar -->
+        <div
+          class="p-3.5 bg-black/[0.03] dark:bg-slate-950/60 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2"
+        >
+          <button
+            id="drawer-focus-btn"
+            type="button"
+            class="ui-pressable flex-1 py-2.5 px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm"
+          >
+            <i class="fa-solid fa-crosshairs" aria-hidden="true"></i> Ağaçta Odaklan
+          </button>
+          <button
+            id="drawer-share-btn"
+            type="button"
+            class="ui-pressable surface-card surface-card-interactive py-2.5 px-3.5 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5"
+            title="Filozof Bağlantısını Kopyala"
+          >
+            <i class="fa-solid fa-link text-amber-600 dark:text-amber-400" aria-hidden="true"></i>
+            <span id="share-btn-label">Bağlantıyı Kopyala</span>
+          </button>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Graphology & Leaflet (CDN Harita & Graf Kütüphaneleri) — SRI ile bütünlük doğrulanır -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/graphology/0.25.4/graphology.umd.min.js"
+      integrity="sha384-643a1dipBp0OHFnm3WeZmMnuJ+ZY/MEll1vTGCjeFzkB/RySh+Almy3Ffn+sxO7y"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+      integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Veri Kaynağı (Single Source of Truth) -->
+    <script src="js/data/entities.js"></script>
+    <script src="js/data/relations.js"></script>
+    <script src="js/data/era-themes.js"></script>
+    <script src="js/data/geo-coordinates.js"></script>
+
+    <!-- Mimari: Şema → GraphDB (Graphology) → Harita & Vis Adaptörleri → Uygulama -->
+    <script src="js/core/schema.js"></script>
+    <script src="js/core/graph-db.js"></script>
+    <script src="js/core/vis-adapter.js"></script>
+    <script src="js/core/leaflet-map.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

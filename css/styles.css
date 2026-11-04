@@ -1,0 +1,452 @@
+/* =========================================================================
+   1. SEMANTIC THEME TOKENS
+   ========================================================================= */
+:root {
+  /* Light Mode: Sıcak Parşömen / Fildişi Akademik Tema —
+     oklch/oklab desteklemeyen tarayıcılar (Safari ≤16.3, Chrome ≤110) için rgba fallback.
+     oklch(0 0 0 / a) tam olarak siyah-alfa olduğundan değerler birebir. */
+  --bg-canvas: #f8f6f0;
+  --bg-island: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(249, 247, 241, 0.94)
+  );
+  --bg-card: rgba(0, 0, 0, 0.032);
+  --bg-card-hover: rgba(0, 0, 0, 0.062);
+  --bg-input: rgba(255, 255, 255, 0.85);
+  --border-input: rgba(0, 0, 0, 0.12);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  /* Light mode 3-layer shadow recipe */
+  --shadow-surface:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.07), 0px 8px 24px -4px rgba(0, 0, 0, 0.09),
+    0px 2px 6px 0px rgba(0, 0, 0, 0.05);
+  --shadow-card:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.06), 0px 1px 2px -1px rgba(0, 0, 0, 0.06),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.11), 0px 2px 4px -1px rgba(0, 0, 0, 0.08),
+    0px 4px 8px 0px rgba(0, 0, 0, 0.06);
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+}
+
+html.dark {
+  /* Dark Mode: Derin Obsidyen & Kehribar Tema — rgba fallback sürümü
+     (oklch(1 0 0 / a) tam olarak beyaz-alfa olduğundan değerler birebir) */
+  --bg-canvas: #050811;
+  --bg-island: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(9, 13, 24, 0.88));
+  --bg-card: rgba(255, 255, 255, 0.038);
+  --bg-card-hover: rgba(255, 255, 255, 0.072);
+  --bg-input: rgba(9, 13, 24, 0.72);
+  --border-input: rgba(255, 255, 255, 0.11);
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  /* Dark mode specular white ring recipe */
+  --shadow-surface:
+    0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 32px -8px rgba(0, 0, 0, 0.65),
+    0 4px 12px -2px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 6px 0 rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 4px 12px 0 rgba(0, 0, 0, 0.45);
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
+}
+
+/* Modern tarayıcılar: yalnızca oklab interpolasyonlu island gradient'i.
+   (Diğer oklch değerleri rgba fallback'leriyle birebir olduğundan ayrıca
+   tanımlanmaz — tek kaynak rgba tabanı kalır.) */
+@supports (background: linear-gradient(in oklab 0deg, red, red)) {
+  :root {
+    --bg-island: linear-gradient(
+      in oklab 180deg,
+      rgba(255, 255, 255, 0.9),
+      rgba(249, 247, 241, 0.94)
+    );
+  }
+
+  html.dark {
+    --bg-island: linear-gradient(in oklab 180deg, rgba(15, 23, 42, 0.82), rgba(9, 13, 24, 0.88));
+  }
+}
+
+/* Özel Kaydırma Çubuğu */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Marka uyumlu metin seçimi */
+::selection {
+  background-color: rgba(245, 158, 11, 0.25);
+  color: inherit;
+}
+
+/* Tuval (Canvas) atmosferi: Açık ve Koyu Mod Duyarlı —
+   fallback rgba sürümü (oklch tonlarının yaklaşık karşılıkları, dekoratif katman) */
+.canvas-atmosphere {
+  background-color: var(--bg-canvas);
+  background-image:
+    radial-gradient(circle at 50% 18%, rgba(245, 207, 154, 0.45), transparent 62%),
+    radial-gradient(circle at 18% 82%, rgba(174, 196, 238, 0.3), transparent 55%),
+    radial-gradient(rgba(0, 0, 0, 0.075) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    26px 26px;
+}
+html.dark .canvas-atmosphere {
+  background-image:
+    radial-gradient(circle at 50% 18%, rgba(43, 45, 85, 0.45), transparent 62%),
+    radial-gradient(circle at 18% 82%, rgba(90, 72, 38, 0.22), transparent 55%),
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+}
+@supports (color: oklch(51% 0.1 30)) and (background: linear-gradient(in oklab 0deg, red, red)) {
+  .canvas-atmosphere {
+    background-image:
+      radial-gradient(circle at 50% 18%, oklch(0.88 0.05 82 / 0.45), transparent 62%),
+      radial-gradient(circle at 18% 82%, oklch(0.88 0.04 255 / 0.3), transparent 55%),
+      radial-gradient(oklch(0 0 0 / 0.075) 1px, transparent 1px);
+  }
+  html.dark .canvas-atmosphere {
+    background-image:
+      radial-gradient(circle at 50% 18%, oklch(0.24 0.05 265 / 0.45), transparent 62%),
+      radial-gradient(circle at 18% 82%, oklch(0.22 0.05 75 / 0.22), transparent 55%),
+      radial-gradient(oklch(1 0 0 / 0.07) 1px, transparent 1px);
+  }
+}
+
+.vis-network:focus {
+  outline: none;
+}
+
+/* Vis-Network Tooltip Özelleştirmesi (Tema Duyarlı) */
+div.vis-tooltip {
+  background: var(--bg-island) !important;
+  backdrop-filter: blur(12px) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 10px !important;
+  padding: 6px 10px !important;
+  font-family: "Inter", system-ui, sans-serif !important;
+  font-size: 11px !important;
+  box-shadow: var(--shadow-surface) !important;
+}
+
+/* Yüzen Cam Yüzeyler (Floating Glass Islands) */
+.floating-island {
+  background: var(--bg-island);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-surface);
+}
+
+.surface-card {
+  background-color: var(--bg-card);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-card);
+  transition-property: box-shadow, background-color, transform;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+@media (hover: hover) {
+  .surface-card-interactive:hover {
+    background-color: var(--bg-card-hover);
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+.theme-input {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-input);
+}
+
+/* Tema İkonu Cross-Fade Geçişi (scale 0.25 -> 1, blur 4px -> 0, 300ms cubic-bezier(0.2, 0, 0, 1)) */
+.theme-icon-slot {
+  display: grid;
+  place-items: center;
+}
+.theme-icon-layer {
+  grid-area: 1 / 1;
+  transition-property: opacity, transform, filter;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-icon-layer {
+    transition-property: opacity;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+/* Açık modda: Ay ikonu görünür (Karanlık moda geçmek için), Güneş gizli */
+.icon-sun {
+  opacity: 0;
+  transform: scale(0.25) rotate(-45deg);
+  filter: blur(4px);
+}
+.icon-moon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  filter: blur(0px);
+}
+/* Koyu modda: Güneş ikonu görünür (Açık moda geçmek için), Ay gizli */
+html.dark .icon-sun {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  filter: blur(0px);
+}
+html.dark .icon-moon {
+  opacity: 0;
+  transform: scale(0.25) rotate(45deg);
+  filter: blur(4px);
+}
+
+/* Görünür Klavye Odak Halkası — WCAG 2.2 / 2.4.13 */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* Etkileşimli Buton Basma ve Hover Kuralları */
+.ui-pressable {
+  -webkit-tap-highlight-color: transparent;
+  transition-property: transform, background-color, border-color, color, opacity, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-pressable:not(:disabled):active {
+    transform: scale(0.96);
+  }
+}
+
+/* Çekmece (Drawer) Geçişi — Reduced Motion Duyarlı */
+.drawer-transition {
+  transition-property: transform, opacity;
+  transition-duration: 320ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer-transition {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Staggered Entrance (Kademeli Blur + Yükselme Giriş Animasyonu) */
+.stagger-group {
+  animation: fade-in 300ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stagger-group {
+    animation-name: fade-in-up;
+  }
+}
+.stagger-group:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-group:nth-child(2) {
+  animation-delay: 80ms;
+}
+.stagger-group:nth-child(3) {
+  animation-delay: 160ms;
+}
+.stagger-group:nth-child(4) {
+  animation-delay: 240ms;
+}
+.stagger-group:nth-child(5) {
+  animation-delay: 320ms;
+}
+.stagger-group:nth-child(6) {
+  animation-delay: 400ms;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+}
+
+/* Tipografik ince ayarlar */
+.text-balance {
+  text-wrap: balance;
+}
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Yatay filtre barları için gizli scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* =========================================================================
+   8. COĞRAFİ DÜNYA HARİTASI (LEAFLET) STİLLERİ
+   ========================================================================= */
+.geo-marker-wrapper {
+  background: transparent;
+  border: none;
+}
+
+.geo-philosopher-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: var(--bg-island);
+  border: 1.5px solid var(--era-color, #fbbf24);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+}
+
+.geo-philosopher-pill:hover {
+  transform: translateY(-2px) scale(1.06);
+  border-color: #fbbf24;
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
+  z-index: 1000;
+}
+
+.geo-philosopher-pill.is-focused {
+  border-width: 2.5px;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.4), 0 8px 24px rgba(0, 0, 0, 0.45);
+  transform: scale(1.12);
+  z-index: 1000;
+}
+
+.geo-philosopher-pill.is-highlighted {
+  border-color: #fbbf24;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+}
+
+.geo-philosopher-pill.is-dimmed {
+  opacity: 0.22;
+  filter: grayscale(0.8);
+}
+
+.geo-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.geo-name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+  .geo-philosopher-pill {
+    padding: 1.5px 5px;
+    font-size: 9.5px;
+    gap: 3.5px;
+  }
+  .geo-dot {
+    width: 5px;
+    height: 5px;
+  }
+  .geo-name {
+    max-width: 72px;
+  }
+}
+
+.geo-arc-tooltip,
+.geo-node-tooltip {
+  background: rgba(15, 23, 42, 0.92) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 11px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+#map-container {
+  background: #050811;
+}
+
+html:not(.dark) #map-container {
+  background: #f8f6f0;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(15, 23, 42, 0.85) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  backdrop-filter: blur(8px);
+}
+
+html:not(.dark) .leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Esri karo atfı (kullanım şartı) — sağ alt zoom araç çubuğunun soluna hizalanır */
+.leaflet-control-attribution {
+  background: rgba(15, 23, 42, 0.6) !important;
+  color: #cbd5e1 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 9px !important;
+  padding: 1px 6px !important;
+  border-radius: 6px 0 0 0 !important;
+  margin-right: 4.75rem !important;
+  backdrop-filter: blur(6px);
+}
+.leaflet-control-attribution a {
+  color: #f8fafc !important;
+}
+html:not(.dark) .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.75) !important;
+  color: #334155 !important;
+}
+html:not(.dark) .leaflet-control-attribution a {
+  color: #0f172a !important;
+}
