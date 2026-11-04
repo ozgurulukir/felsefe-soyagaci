@@ -198,6 +198,10 @@ const PhilosophyGeo = (function () {
   });
 })();
 
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { PhilosophyGeo };
+}
+
 if (typeof window !== 'undefined') {
   window.PhilosophyGeo = PhilosophyGeo;
 }
