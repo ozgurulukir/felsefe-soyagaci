@@ -52,3 +52,8 @@ const PhilosophySchema = (function() {
     validateRelation
   });
 })();
+
+// Düğüm (global script) ve Node.js (test) ortamlarında aynı dosya çalışsın
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { PhilosophySchema, normalizeTurkish };
+}

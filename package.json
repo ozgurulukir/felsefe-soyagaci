@@ -3,6 +3,7 @@
   "private": true,
   "description": "Filozoflar Soyağacı — yalnızca bu sayfanın Tailwind derlemesi (site geneliyle ilişkisiz).",
   "scripts": {
+    "test": "node --test",
     "build": "tailwindcss -c tailwind.config.js -i css/tailwind.input.css -o css/tailwind.css --minify",
     "dev": "tailwindcss -c tailwind.config.js -i css/tailwind.input.css -o css/tailwind.css --watch"
   },

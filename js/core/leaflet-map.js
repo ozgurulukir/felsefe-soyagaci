@@ -118,16 +118,8 @@ const LeafletMapManager = (function () {
 
     if (!window.PhilosophyGeo) return;
 
-    const pathSet = highlightPath ? new Set(highlightPath) : null;
-    const neighborhood = focusedNodeId ? db.getNeighborhoodSet(focusedNodeId) : null;
-    const pathEdges = new Set();
-
-    if (highlightPath && highlightPath.length > 1) {
-      for (let i = 0; i < highlightPath.length - 1; i++) {
-        pathEdges.add(highlightPath[i] + '->' + highlightPath[i + 1]);
-        pathEdges.add(highlightPath[i + 1] + '->' + highlightPath[i]);
-      }
-    }
+    // Vurgu/karartma kararları ortak ViewFilter modülünden gelir (graf görünümüyle aynı semantik)
+    const view = ViewFilter.resolveViewStates(db, { filteredEra, focusedNodeId, highlightPath });
 
     // Hoca-Öğrenci (Master) = Altın Sarısı / Amber (Düz Çizgi)
     const masterNormal = isDark ? '#f59e0b' : '#b45309';
@@ -150,19 +142,9 @@ const LeafletMapManager = (function () {
       const c2 = window.PhilosophyGeo.getPhilosopherLatLng(rel.to);
       if (!c1 || !c2) return;
 
-      let isDimmed = false;
-      let isEdgeHighlighted = false;
-
-      if (highlightPath) {
-        isEdgeHighlighted = pathEdges.has(rel.from + '->' + rel.to);
-        isDimmed = !isEdgeHighlighted;
-      } else if (focusedNodeId) {
-        isEdgeHighlighted = (rel.from === focusedNodeId || rel.to === focusedNodeId);
-        isDimmed = !isEdgeHighlighted;
-      } else if (filteredEra !== 'all') {
-        isDimmed = (pFrom.era !== filteredEra && pTo.era !== filteredEra);
-      }
-
+      const edgeState = view.edgeStates.get(rel.id) || { isDimmed: false, isHighlighted: false };
+      const isDimmed = edgeState.isDimmed;
+      const isEdgeHighlighted = edgeState.isHighlighted;
       const isMaster = rel.type === 'master';
       const baseColor = isMaster ? masterNormal : influenceNormal;
       const activeColor = isMaster ? masterHighlight : influenceHighlight;
@@ -201,20 +183,10 @@ const LeafletMapManager = (function () {
       const coords = window.PhilosophyGeo.getPhilosopherLatLng(p.id);
       if (!coords) return;
 
-      let isDimmed = false;
-      let isHighlighted = false;
-
-      if (pathSet) {
-        isHighlighted = pathSet.has(p.id);
-        isDimmed = !isHighlighted;
-      } else if (neighborhood) {
-        isHighlighted = neighborhood.has(p.id);
-        isDimmed = !isHighlighted;
-      } else if (filteredEra !== 'all') {
-        isDimmed = p.era !== filteredEra;
-      }
-
-      const isPrimaryFocus = (focusedNodeId === p.id) || (pathSet && (highlightPath[0] === p.id || highlightPath[highlightPath.length - 1] === p.id));
+      const nodeState = view.nodeStates.get(p.id) || { isDimmed: false, isHighlighted: false, isPrimaryFocus: false };
+      const isDimmed = nodeState.isDimmed;
+      const isHighlighted = nodeState.isHighlighted;
+      const isPrimaryFocus = nodeState.isPrimaryFocus;
       const theme = getEraTheme(p.era);
 
       const markerHtml = `

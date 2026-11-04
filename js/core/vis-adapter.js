@@ -2,42 +2,44 @@
  * =========================================================================
  * 4. ARCHITECTURAL SEAM & ADAPTÖR (VERİ İLE GÖRÜNÜMÜ AYIRAN KATMAN)
  * =========================================================================
+ * Vurgu/karartma kararları ViewFilter'da (js/core/view-filter.js) alınır;
+ * bu adapter yalnızca vis-network piksel sabitleriyle state'i gösterir.
  */
 class GraphToVisAdapter {
   constructor(graphDb) {
     this._db = graphDb;
   }
 
-  toVisNodes({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD' } = {}) {
-    const isDark = isDarkMode();
+  // Tema girdileri artık dışarıdan enjekte edilir; verilmezse tarayıcıdaki
+  // global fonksiyonlara düşer (geriye dönük uyumluluk / headless test).
+  _resolveTheme({ isDark, getEraTheme: eraThemeFn }) {
+    return {
+      isDark: isDark !== null && isDark !== undefined
+        ? isDark
+        : (typeof isDarkMode === 'function' ? isDarkMode() : true),
+      getEraTheme: eraThemeFn || (typeof getEraTheme === 'function' ? getEraTheme : null)
+    };
+  }
+
+  toVisNodes({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null, getEraTheme = null } = {}) {
+    const theme = this._resolveTheme({ isDark, getEraTheme });
+    const isDarkModeOn = theme.isDark;
     const entities = this._db.getAllEntities();
-    const neighborhood = focusedNodeId ? this._db.getNeighborhoodSet(focusedNodeId) : null;
-    const pathSet = highlightPath ? new Set(highlightPath) : null;
+    const view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });
     const isGeo = layoutType === 'geo';
 
     return entities.map(p => {
-      const colors = getEraTheme(p.era);
-      
-      let isDimmed = false;
-      let isHighlighted = false;
-
-      if (pathSet) {
-        isHighlighted = pathSet.has(p.id);
-        isDimmed = !isHighlighted;
-      } else if (neighborhood) {
-        isHighlighted = neighborhood.has(p.id);
-        isDimmed = !isHighlighted;
-      } else if (filteredEra !== 'all') {
-        isDimmed = p.era !== filteredEra;
-      }
-
-      const isPrimaryFocus = (focusedNodeId === p.id) || (pathSet && (highlightPath[0] === p.id || highlightPath[highlightPath.length - 1] === p.id));
+      const state = view.nodeStates.get(p.id) || { isDimmed: false, isHighlighted: false, isPrimaryFocus: false };
+      const isDimmed = state.isDimmed;
+      const isHighlighted = state.isHighlighted;
+      const isPrimaryFocus = state.isPrimaryFocus;
+      const colors = theme.getEraTheme(p.era, isDarkModeOn ? 'dark' : 'light');
 
       // Koyu / Açık tema duyarlı gölge ve donuklaştırma (dimming) renkleri
-      const dimmedBg = isDark ? '#090d16cc' : '#f8fafcba';
-      const dimmedBorder = isDark ? '#1e293b55' : '#cbd5e166';
-      const dimmedFont = isDark ? '#475569' : '#94a3b8';
-      const focusBorder = isDark ? '#fbbf24' : '#d97706';
+      const dimmedBg = isDarkModeOn ? '#090d16cc' : '#f8fafcba';
+      const dimmedBorder = isDarkModeOn ? '#1e293b55' : '#cbd5e166';
+      const dimmedFont = isDarkModeOn ? '#475569' : '#94a3b8';
+      const focusBorder = isDarkModeOn ? '#fbbf24' : '#d97706';
 
       const nodeObj = {
         id: p.id,
@@ -69,9 +71,9 @@ class GraphToVisAdapter {
         },
         shadow: isDimmed ? false : {
           enabled: true,
-          color: isPrimaryFocus 
-            ? (isDark ? 'rgba(251, 191, 36, 0.55)' : 'rgba(217, 119, 6, 0.4)') 
-            : (isDark ? 'rgba(0, 0, 0, 0.65)' : 'rgba(15, 23, 42, 0.10)'),
+          color: isPrimaryFocus
+            ? (isDarkModeOn ? 'rgba(251, 191, 36, 0.55)' : 'rgba(217, 119, 6, 0.4)')
+            : (isDarkModeOn ? 'rgba(0, 0, 0, 0.65)' : 'rgba(15, 23, 42, 0.10)'),
           size: isPrimaryFocus ? 18 : 8,
           x: 0,
           y: isPrimaryFocus ? 4 : 2
@@ -93,47 +95,31 @@ class GraphToVisAdapter {
     });
   }
 
-  toVisEdges({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD' } = {}) {
-    const isDark = isDarkMode();
+  toVisEdges({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null } = {}) {
+    const theme = this._resolveTheme({ isDark });
+    const isDarkModeOn = theme.isDark;
     const relations = this._db.getAllRelations();
-    const pathEdges = new Set();
-
-    if (highlightPath && highlightPath.length > 1) {
-      for (let i = 0; i < highlightPath.length - 1; i++) {
-        pathEdges.add(highlightPath[i] + '->' + highlightPath[i + 1]);
-        pathEdges.add(highlightPath[i + 1] + '->' + highlightPath[i]);
-      }
-    }
+    const view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });
 
     const forceDir = layoutType === 'LR' ? 'horizontal' : (layoutType === 'UD' ? 'vertical' : 'none');
 
     // Hoca-Öğrenci (Master) = Altın Sarısı / Amber (Düz Çizgi)
-    const masterNormal = isDark ? '#f59e0b' : '#b45309';
-    const masterHighlight = isDark ? '#fbbf24' : '#d97706';
-    const masterDimmed = isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(180, 83, 9, 0.18)';
+    const masterNormal = isDarkModeOn ? '#f59e0b' : '#b45309';
+    const masterHighlight = isDarkModeOn ? '#fbbf24' : '#d97706';
+    const masterDimmed = isDarkModeOn ? 'rgba(245, 158, 11, 0.15)' : 'rgba(180, 83, 9, 0.18)';
 
     // Entelektüel Etki (Influence) = Gök Mavisi / Sky Blue (Kesikli Çizgi)
-    const influenceNormal = isDark ? '#38bdf8' : '#0284c7';
-    const influenceHighlight = isDark ? '#38bdf8' : '#0ea5e9';
-    const influenceDimmed = isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.18)';
+    const influenceNormal = isDarkModeOn ? '#38bdf8' : '#0284c7';
+    const influenceHighlight = isDarkModeOn ? '#38bdf8' : '#0ea5e9';
+    const influenceDimmed = isDarkModeOn ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.18)';
 
     return relations.map(e => {
+      const state = view.edgeStates.get(e.id) || { isDimmed: false, isHighlighted: false };
+      const isDimmed = state.isDimmed;
+      const isEdgeHighlighted = state.isHighlighted;
       const isMaster = e.type === 'master';
       const fromNode = this._db.getEntity(e.from);
       const toNode = this._db.getEntity(e.to);
-
-      let isDimmed = false;
-      let isEdgeHighlighted = false;
-
-      if (highlightPath) {
-        isEdgeHighlighted = pathEdges.has(e.from + '->' + e.to);
-        isDimmed = !isEdgeHighlighted;
-      } else if (focusedNodeId) {
-        isEdgeHighlighted = (e.from === focusedNodeId || e.to === focusedNodeId);
-        isDimmed = !isEdgeHighlighted;
-      } else if (filteredEra !== 'all') {
-        isDimmed = (fromNode && fromNode.era !== filteredEra) && (toNode && toNode.era !== filteredEra);
-      }
 
       const baseColor = isMaster ? masterNormal : influenceNormal;
       const activeColor = isMaster ? masterHighlight : influenceHighlight;
@@ -170,4 +156,9 @@ class GraphToVisAdapter {
       };
     });
   }
+}
+
+// Düğüm (global script) ve Node.js (test) ortamlarında aynı dosya çalışsın
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { GraphToVisAdapter };
 }
