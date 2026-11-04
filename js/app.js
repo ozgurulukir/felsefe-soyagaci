@@ -336,8 +336,8 @@ function initNetwork() {
   network = new vis.Network(container, data, getNetworkOptions(currentLayout));
 
   network.on('beforeDrawing', function(ctx) {
-    if (currentLayout === 'geo' && window.PhilosophyGeo) {
-      window.PhilosophyGeo.drawMap(ctx, isDarkMode());
+    if (currentLayout === 'geo' && window.PhilosophyAtlas && window.PhilosophyGeo) {
+      window.PhilosophyAtlas.drawMap(ctx, isDarkMode(), window.PhilosophyGeo.projectRaw);
     }
   });
 
