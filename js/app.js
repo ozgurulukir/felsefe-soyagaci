@@ -42,8 +42,9 @@ function getAnimOptions(duration = 600) {
 }
 
 // Geo modda gerçek karo haritası mı, yerleşik Atlas (vis-canvas) motoru mu aktif?
+// Karar ViewUi.deriveEngineState'te (SSOT); burada yalnızca uygulanır.
 function isLeafletEngine() {
-  return currentLayout === 'geo' && !geoAtlasMode;
+  return ViewUi.deriveEngineState({ layout: currentLayout, geoAtlasMode }).isLeafletEngine;
 }
 
 // Geo motorları arasındaki seam: ileride üçüncü bir motor (ör. stilize tema) buraya eklenir.
@@ -143,14 +144,11 @@ function applyGeoContainerVisibility() {
   const netContainer = document.getElementById('network-container');
   const mapContainer = document.getElementById('map-container');
 
-  if (currentLayout === 'geo') {
-    const useAtlas = geoAtlasMode;
-    if (netContainer) netContainer.classList.toggle('hidden', !useAtlas);
-    if (mapContainer) mapContainer.classList.toggle('hidden', useAtlas);
-  } else {
-    if (mapContainer) mapContainer.classList.add('hidden');
-    if (netContainer) netContainer.classList.remove('hidden');
-  }
+  const { visibleContainer } = ViewUi.deriveEngineState({ layout: currentLayout, geoAtlasMode });
+  const showMap = visibleContainer === 'tiles';
+  const showAtlas = visibleContainer === 'atlas';
+  if (mapContainer) mapContainer.classList.toggle('hidden', !showMap);
+  if (netContainer) netContainer.classList.toggle('hidden', !(showAtlas || visibleContainer === 'graph'));
 }
 
 // Geçici durum bildirimi (motor değişimi vb.) — aria-live ile ekran okuyuculara da duyurulur
@@ -301,16 +299,13 @@ function updateFocusBanner() {
   const banner = document.getElementById('active-focus-banner');
   const textEl = document.getElementById('active-focus-text');
 
-  if (currentHighlightPath && currentHighlightPath.length > 1) {
-    const first = graphDb.getEntity(currentHighlightPath[0]);
-    const last = graphDb.getEntity(currentHighlightPath[currentHighlightPath.length - 1]);
-    textEl.innerHTML = `<i class="fa-solid fa-route text-indigo-400 mr-1" aria-hidden="true"></i> Etki Zinciri: <b>${first.name}</b> ➔ <b>${last.name}</b> (${currentHighlightPath.length - 1} adım)`;
+  // Karar ViewUi.deriveBanner'da (SSOT): yol > seçim > yok önceliği
+  const view = ViewUi.deriveBanner(graphDb, { pathId: currentHighlightPath, selectedId: currentSelectedId });
+  if (view.kind === 'path') {
+    textEl.innerHTML = `<i class="fa-solid fa-route text-indigo-400 mr-1" aria-hidden="true"></i> Etki Zinciri: <b>${view.first.name}</b> ➔ <b>${view.last.name}</b> (${view.steps} adım)`;
     banner.classList.remove('hidden');
-  } else if (currentSelectedId) {
-    const p = graphDb.getEntity(currentSelectedId);
-    const teachersCount = graphDb.getTeachers(currentSelectedId).length;
-    const studentsCount = graphDb.getStudents(currentSelectedId).length;
-    textEl.innerHTML = `<i class="fa-solid fa-diagram-project text-amber-400 mr-1" aria-hidden="true"></i> <b>${p.name}</b> Soykütüğü (${teachersCount} öncül, ${studentsCount} ardıl)`;
+  } else if (view.kind === 'focus') {
+    textEl.innerHTML = `<i class="fa-solid fa-diagram-project text-amber-400 mr-1" aria-hidden="true"></i> <b>${view.person.name}</b> Soykütüğü (${view.teachersCount} öncül, ${view.studentsCount} ardıl)`;
     banner.classList.remove('hidden');
   } else {
     textEl.textContent = '';
@@ -706,7 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('drawer-close-btn').addEventListener('click', () => {
-    if (currentHighlightPath) {
+    if (ViewUi.drawerActionFor({ pathId: currentHighlightPath }) === 'close-drawer') {
       closeDrawer();
     } else {
       clearFocusAndSelection();
@@ -954,7 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
         layoutToggleBtn.setAttribute('aria-expanded', 'false');
       }
       if (searchWasOpen || menuWasOpen) return;
-      if (currentHighlightPath) {
+      if (ViewUi.drawerActionFor({ pathId: currentHighlightPath }) === 'close-drawer') {
         closeDrawer();
       } else {
         clearFocusAndSelection();
