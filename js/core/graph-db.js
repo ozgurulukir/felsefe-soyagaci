@@ -104,18 +104,17 @@ class PhilosophyGraphDatabase {
 
   // Dönem tabanlarını ve yönlü bağlantıları dikkate alan kronolojik katman (level) hesabı
   _computeChronologicalLevels() {
-    const ERA_BASE_LEVEL = {
-      antik: 0,
-      helenistik: 5,
-      ortacag: 9,
-      aydinlanma: 13,
-      '19yy': 18,
-      '20yy': 22
-    };
+    // Dönem tabanları schema.js'deki ERAS listesinden türetilir (SSOT).
+    const eraBaseLevel = new Map(
+      PhilosophySchema.ERAS.map(function(e) { return [e.id, e.baseLevel]; })
+    );
 
     this._levels = new Map();
     for (const entity of this.getAllEntities()) {
-      this._levels.set(entity.id, ERA_BASE_LEVEL[entity.era] ?? 0);
+      if (!eraBaseLevel.has(entity.era)) {
+        throw new Error(`[Graph Error] Bilinmeyen dönem tabanı: ${entity.era} (id: ${entity.id})`);
+      }
+      this._levels.set(entity.id, eraBaseLevel.get(entity.era));
     }
 
     // Döngüsel ilişki durumunda sonsuz döngüyü önlemek için üst sınır (düğüm sayısı kadar geçiş yeter)
@@ -195,4 +194,9 @@ class PhilosophyGraphDatabase {
     }
     return null;
   }
+}
+
+// Düğüm (global script) ve Node.js (test) ortamlarında aynı dosya çalışsın
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { PhilosophyGraphDatabase };
 }

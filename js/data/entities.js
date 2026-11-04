@@ -1685,3 +1685,8 @@ const RAW_ENTITIES = Object.freeze({
     ]
   }
 });
+
+// Düğüm (global script) ve Node.js (test) ortamlarında aynı dosya çalışsın
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { RAW_ENTITIES };
+}
