@@ -27,72 +27,84 @@ class GraphToVisAdapter {
     const entities = this._db.getAllEntities();
     const view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });
     const isGeo = layoutType === 'geo';
+    const palette = this._dimPalette(isDarkModeOn);
 
     return entities.map(p => {
       const state = view.nodeStates.get(p.id) || { isDimmed: false, isHighlighted: false, isPrimaryFocus: false };
-      const isDimmed = state.isDimmed;
-      const isHighlighted = state.isHighlighted;
-      const isPrimaryFocus = state.isPrimaryFocus;
       const colors = theme.getEraTheme(p.era, isDarkModeOn ? 'dark' : 'light');
-
-      // Koyu / Açık tema duyarlı gölge ve donuklaştırma (dimming) renkleri
-      const dimmedBg = isDarkModeOn ? '#090d16cc' : '#f8fafcba';
-      const dimmedBorder = isDarkModeOn ? '#1e293b55' : '#cbd5e166';
-      const dimmedFont = isDarkModeOn ? '#475569' : '#94a3b8';
-      const focusBorder = isDarkModeOn ? '#fbbf24' : '#d97706';
-
-      const nodeObj = {
-        id: p.id,
-        level: this._db.getLevel(p.id),
-        label: '<b>' + p.name + '</b>\n<i>' + p.dates + '</i>',
-        shape: 'box',
-        shapeProperties: {
-          borderRadius: 10
-        },
-        margin: { top: 10, bottom: 10, left: 16, right: 16 },
-        borderWidth: isPrimaryFocus ? 3 : (isHighlighted ? 2.5 : 1.5),
-        borderWidthSelected: 3,
-        color: {
-          background: isDimmed ? dimmedBg : (isPrimaryFocus ? colors.highlight.background : colors.background),
-          border: isDimmed ? dimmedBorder : (isPrimaryFocus ? focusBorder : colors.border),
-          highlight: colors.highlight,
-          hover: {
-            background: colors.highlight.background,
-            border: colors.highlight.border
-          }
-        },
-        font: {
-          color: isDimmed ? dimmedFont : colors.color,
-          multi: 'html',
-          // Atlas görünümünde kadraj sabit ölçekle (~0.62) başladığından etiketler
-          // ekran üzerinde ~10px'de okunur kalsın diye geo modda biraz büyütülür
-          size: isGeo ? (isPrimaryFocus ? 17 : 16) : (isPrimaryFocus ? 14 : 13),
-          face: 'Inter, system-ui, sans-serif'
-        },
-        shadow: isDimmed ? false : {
-          enabled: true,
-          color: isPrimaryFocus
-            ? (isDarkModeOn ? 'rgba(251, 191, 36, 0.55)' : 'rgba(217, 119, 6, 0.4)')
-            : (isDarkModeOn ? 'rgba(0, 0, 0, 0.65)' : 'rgba(15, 23, 42, 0.10)'),
-          size: isPrimaryFocus ? 18 : 8,
-          x: 0,
-          y: isPrimaryFocus ? 4 : 2
-        }
-      };
-
-      if (isGeo && window.PhilosophyGeo) {
-        const geoPos = window.PhilosophyGeo.getNodePosition(p.id);
-        if (geoPos) {
-          nodeObj.x = geoPos.x;
-          nodeObj.y = geoPos.y;
-          nodeObj.fixed = { x: true, y: true };
-        }
-      } else {
-        nodeObj.fixed = false;
-      }
-
-      return nodeObj;
+      const nodeObj = this._buildNodeVisual(p, state, colors, palette, isGeo, isDarkModeOn);
+      return this._applyGeoPosition(nodeObj, p, isGeo);
     });
+  }
+
+  // Koyu / Açık tema duyarlı gölge ve donuklaştırma (dimming) renkleri
+  _dimPalette(isDarkModeOn) {
+    return {
+      dimmedBg: isDarkModeOn ? '#090d16cc' : '#f8fafcba',
+      dimmedBorder: isDarkModeOn ? '#1e293b55' : '#cbd5e166',
+      dimmedFont: isDarkModeOn ? '#475569' : '#94a3b8',
+      focusBorder: isDarkModeOn ? '#fbbf24' : '#d97706'
+    };
+  }
+
+  _buildNodeVisual(p, state, colors, palette, isGeo, isDarkModeOn) {
+    const isDimmed = state.isDimmed;
+    const isHighlighted = state.isHighlighted;
+    const isPrimaryFocus = state.isPrimaryFocus;
+    const { dimmedBg, dimmedBorder, dimmedFont, focusBorder } = palette;
+
+    return {
+      id: p.id,
+      level: this._db.getLevel(p.id),
+      label: '<b>' + p.name + '</b>\n<i>' + p.dates + '</i>',
+      shape: 'box',
+      shapeProperties: {
+        borderRadius: 10
+      },
+      margin: { top: 10, bottom: 10, left: 16, right: 16 },
+      borderWidth: isPrimaryFocus ? 3 : (isHighlighted ? 2.5 : 1.5),
+      borderWidthSelected: 3,
+      color: {
+        background: isDimmed ? dimmedBg : (isPrimaryFocus ? colors.highlight.background : colors.background),
+        border: isDimmed ? dimmedBorder : (isPrimaryFocus ? focusBorder : colors.border),
+        highlight: colors.highlight,
+        hover: {
+          background: colors.highlight.background,
+          border: colors.highlight.border
+        }
+      },
+      font: {
+        color: isDimmed ? dimmedFont : colors.color,
+        multi: 'html',
+        // Atlas görünümünde kadraj sabit ölçekle (~0.62) başladığından etiketler
+        // ekran üzerinde ~10px'de okunur kalsın diye geo modda biraz büyütülür
+        size: isGeo ? (isPrimaryFocus ? 17 : 16) : (isPrimaryFocus ? 14 : 13),
+        face: 'Inter, system-ui, sans-serif'
+      },
+      shadow: isDimmed ? false : {
+        enabled: true,
+        color: isPrimaryFocus
+          ? (isDarkModeOn ? 'rgba(251, 191, 36, 0.55)' : 'rgba(217, 119, 6, 0.4)')
+          : (isDarkModeOn ? 'rgba(0, 0, 0, 0.65)' : 'rgba(15, 23, 42, 0.10)'),
+        size: isPrimaryFocus ? 18 : 8,
+        x: 0,
+        y: isPrimaryFocus ? 4 : 2
+      }
+    };
+  }
+
+  _applyGeoPosition(nodeObj, p, isGeo) {
+    if (isGeo && window.PhilosophyGeo) {
+      const geoPos = window.PhilosophyGeo.getNodePosition(p.id);
+      if (geoPos) {
+        nodeObj.x = geoPos.x;
+        nodeObj.y = geoPos.y;
+        nodeObj.fixed = { x: true, y: true };
+      }
+    } else {
+      nodeObj.fixed = false;
+    }
+    return nodeObj;
   }
 
   toVisEdges({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null } = {}) {
