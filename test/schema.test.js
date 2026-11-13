@@ -68,14 +68,20 @@ test('her dönemin hem dark hem light teması var (era-themes ile SSOT uyumu)', 
   }
 });
 
-test('gerçek veriyle graf kurulumu seviye ataması ERAS tabanlarından gelir', () => {
+test('gerçek veriyle graf kurulumu seviye ataması ERAS tabanlarından gelir ve sonraki döneme taşmaz', () => {
   const db = new PhilosophyGraphDatabase(RAW_ENTITIES, RAW_RELATIONS);
   const baseById = new Map(ERAS.map(e => [e.id, e.baseLevel]));
+  const nextBaseById = new Map(ERAS.map((e, idx) => [
+    e.id,
+    idx + 1 < ERAS.length ? ERAS[idx + 1].baseLevel : Infinity
+  ]));
   for (const entity of db.getAllEntities()) {
     const base = baseById.get(entity.era);
+    const nextBase = nextBaseById.get(entity.era);
     assert.ok(Number.isInteger(base), `ERAS tabanı yok: ${entity.era}`);
     const level = db.getLevel(entity.id);
     assert.ok(level >= base, `level < baseLevel: ${entity.id} (${level} < ${base})`);
+    assert.ok(level < nextBase, `level >= nextBaseLevel: ${entity.id} (${entity.era}: ${level} >= ${nextBase})`);
   }
 });
 

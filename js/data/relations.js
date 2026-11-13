@@ -102,6 +102,12 @@ const RAW_RELATIONS = Object.freeze([
     "label": "Stoa Mirası"
   },
   {
+    "from": "hrisippos",
+    "to": "musonios",
+    "type": "influence",
+    "label": "Stoa Mirası"
+  },
+  {
     "from": "epiktetos",
     "to": "aurelius",
     "type": "influence",

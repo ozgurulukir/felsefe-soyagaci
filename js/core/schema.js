@@ -25,10 +25,10 @@ const PhilosophySchema = (function() {
   const ERAS = Object.freeze([
     { id: 'antik', label: 'Antik Yunan', baseLevel: 0 },
     { id: 'helenistik', label: 'Helenistik & Roma', baseLevel: 5 },
-    { id: 'ortacag', label: 'Orta Çağ & İslam', baseLevel: 9 },
-    { id: 'aydinlanma', label: 'Rönesans & Aydınlanma', baseLevel: 13 },
-    { id: '19yy', label: '19. Yüzyıl', baseLevel: 18 },
-    { id: '20yy', label: '20. Yüzyıl & Çağdaş', baseLevel: 22 }
+    { id: 'ortacag', label: 'Orta Çağ & İslam', baseLevel: 11 },
+    { id: 'aydinlanma', label: 'Rönesans & Aydınlanma', baseLevel: 19 },
+    { id: '19yy', label: '19. Yüzyıl', baseLevel: 25 },
+    { id: '20yy', label: '20. Yüzyıl & Çağdaş', baseLevel: 30 }
   ]);
   const VALID_ERAS = ERAS.map(function(e) { return e.id; });
   const VALID_RELATION_TYPES = ['master', 'influence'];

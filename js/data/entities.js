@@ -1491,7 +1491,7 @@ const RAW_ENTITIES = Object.freeze({
   "leukippos": {
     "id": "leukippos",
     "name": "Leukippos",
-    "dates": "MÖ 5. Yüzyıl (y. 480 – y. 420)",
+    "dates": "MÖ 480 – 420",
     "era": "antik",
     "eraName": "Antik Çağ & Atomculuk",
     "school": "Erken Atomculuk",

@@ -102,3 +102,25 @@ test('coords: her id için geocode jitter türetilebiliyor (getPhilosopherLatLng
     assert.ok(Array.isArray(ll) && ll.length === 2, `getPhilosopherLatLng null/bozuk: ${id}`);
   }
 });
+
+test('relations: tüm varlıklar tek bir bağlı bileşen (connected component) oluşturur', () => {
+  const adj = new Map(entities.map(e => [e.id, []]));
+  for (const r of relations) {
+    adj.get(r.from).push(r.to);
+    adj.get(r.to).push(r.from);
+  }
+  const visited = new Set([entities[0].id]);
+  const queue = [entities[0].id];
+  while (queue.length > 0) {
+    const curr = queue.shift();
+    for (const nxt of adj.get(curr)) {
+      if (!visited.has(nxt)) {
+        visited.add(nxt);
+        queue.push(nxt);
+      }
+    }
+  }
+  const unvisited = entities.filter(e => !visited.has(e.id)).map(e => e.id);
+  assert.deepStrictEqual(unvisited, [], `ana ağdan kopuk varlıklar: ${unvisited.join(', ')}`);
+});
+
