@@ -131,8 +131,13 @@ html.dark .canvas-atmosphere {
   }
 }
 
-.vis-network:focus {
+.vis-network:focus:not(:focus-visible) {
   outline: none;
+}
+
+.vis-network:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: -2px;
 }
 
 /* Vis-Network Tooltip Özelleştirmesi (Tema Duyarlı) */
@@ -333,7 +338,9 @@ input:focus-visible {
   color: var(--text-primary);
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-property: transform, border-color, box-shadow, opacity, filter;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   backdrop-filter: blur(8px);
 }
 
@@ -449,4 +456,26 @@ html:not(.dark) .leaflet-control-attribution {
 }
 html:not(.dark) .leaflet-control-attribution a {
   color: #0f172a !important;
+}
+
+/* Pill hareketi azaltılmış hareket tercihinde yalnızca renk/gölge ile vurgulanır */
+@media (prefers-reduced-motion: reduce) {
+  .geo-philosopher-pill {
+    transition-property: border-color, box-shadow, opacity, filter;
+  }
+  .geo-philosopher-pill:hover,
+  .geo-philosopher-pill.is-focused {
+    transform: none;
+  }
+}
+
+/* Windows Yüksek Karşıtlık: odak halkası sistem rengini korur */
+@media (forced-colors: active) {
+  button:focus-visible,
+  a:focus-visible,
+  select:focus-visible,
+  input:focus-visible,
+  .vis-network:focus-visible {
+    outline-color: Highlight;
+  }
 }
