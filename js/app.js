@@ -153,10 +153,10 @@ function updateFocusBanner() {
   // Karar ViewUi.deriveBanner'da (SSOT): yol > seçim > yok önceliği
   const view = ViewUi.deriveBanner(graphDb, { pathId: currentHighlightPath, selectedId: currentSelectedId });
   if (view.kind === 'path') {
-    textEl.innerHTML = `<i class="fa-solid fa-route text-indigo-400 mr-1" aria-hidden="true"></i> Etki Zinciri: <b>${view.first.name}</b> ➔ <b>${view.last.name}</b> (${view.steps} adım)`;
+    textEl.innerHTML = `<i class="fa-solid fa-route text-indigo-400 mr-1" aria-hidden="true"></i> Etki Zinciri: <b>${HtmlEscape.escape(view.first.name)}</b> ➔ <b>${HtmlEscape.escape(view.last.name)}</b> (${view.steps} adım)`;
     banner.classList.remove('hidden');
   } else if (view.kind === 'focus') {
-    textEl.innerHTML = `<i class="fa-solid fa-diagram-project text-amber-400 mr-1" aria-hidden="true"></i> <b>${view.person.name}</b> Soykütüğü (${view.teachersCount} öncül, ${view.studentsCount} ardıl)`;
+    textEl.innerHTML = `<i class="fa-solid fa-diagram-project text-amber-400 mr-1" aria-hidden="true"></i> <b>${HtmlEscape.escape(view.person.name)}</b> Soykütüğü (${view.teachersCount} öncül, ${view.studentsCount} ardıl)`;
     banner.classList.remove('hidden');
   } else {
     textEl.textContent = '';
@@ -237,7 +237,7 @@ function showPhilosopherDetails(id, { preservePath = false } = {}) {
 
   document.getElementById('drawer-name').textContent = p.name;
   document.getElementById('drawer-dates').textContent = p.dates;
-  document.getElementById('drawer-city').innerHTML = '<i class="fa-solid fa-location-dot text-[11px] text-slate-400 mr-1" aria-hidden="true"></i>' + p.city;
+  document.getElementById('drawer-city').innerHTML = '<i class="fa-solid fa-location-dot text-[11px] text-slate-400 mr-1" aria-hidden="true"></i>' + HtmlEscape.escape(p.city);
   document.getElementById('drawer-school').textContent = p.school;
 
   // Dönem rozetini dinamik renklendir (saf model: DetailContent)
@@ -304,7 +304,7 @@ function renderWorkItems(p) {
     const model = DetailContent.workItemModel(work);
     const li = document.createElement('li');
     li.className = model.className;
-    li.innerHTML = '<i class="' + model.iconClass + '" aria-hidden="true"></i> <span>' + model.text + '</span>';
+    li.innerHTML = '<i class="' + model.iconClass + '" aria-hidden="true"></i> <span>' + HtmlEscape.escape(model.text) + '</span>';
     container.appendChild(li);
   });
 }

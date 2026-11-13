@@ -163,10 +163,10 @@ const LeafletMapManager = (function () {
       });
 
       polyline.bindTooltip(
-        `<b>${pFrom.name}</b> ➔ <b>${pTo.name}</b><br>` +
+        `<b>${HtmlEscape.escape(pFrom.name)}</b> ➔ <b>${HtmlEscape.escape(pTo.name)}</b><br>` +
         `<span style="color: ${isMaster ? '#fbbf24' : '#38bdf8'}; font-weight: 600;">` +
         `${isMaster ? '● Hoca – Öğrenci (Düz Altın Çizgi)' : '╌ Entelektüel Etki (Kesikli Mavi Çizgi)'}</span><br>` +
-        `<span style="opacity: 0.85;">${rel.label}</span>`,
+        `<span style="opacity: 0.85;">${HtmlEscape.escape(rel.label)}</span>`,
         {
           sticky: true,
           direction: 'top',
@@ -192,7 +192,7 @@ const LeafletMapManager = (function () {
       const markerHtml = `
         <div class="geo-philosopher-pill ${isPrimaryFocus ? 'is-focused' : ''} ${isHighlighted ? 'is-highlighted' : ''} ${isDimmed ? 'is-dimmed' : ''}" style="--era-color: ${theme.border}; --era-bg: ${theme.background};">
           <span class="geo-dot" style="background: ${theme.border};"></span>
-          <span class="geo-name">${p.name}</span>
+          <span class="geo-name">${HtmlEscape.escape(p.name)}</span>
         </div>
       `;
 
@@ -204,7 +204,7 @@ const LeafletMapManager = (function () {
       });
 
       const marker = L.marker(coords, { icon });
-      marker.bindTooltip(`<b>${p.name}</b> (${p.dates})<br><span style="opacity:0.8;">${p.school}</span><br><i>📍 ${p.city}</i>`, {
+      marker.bindTooltip(`<b>${HtmlEscape.escape(p.name)}</b> (${HtmlEscape.escape(p.dates)})<br><span style="opacity:0.8;">${HtmlEscape.escape(p.school)}</span><br><i>📍 ${HtmlEscape.escape(p.city)}</i>`, {
         direction: 'top',
         offset: [0, -14],
         className: 'geo-node-tooltip'

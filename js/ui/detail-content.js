@@ -9,6 +9,9 @@
  * tıklama/olay dinleyicileri app.js'te kalır. Node'da require edilebilir.
  */
 const DetailContent = (function () {
+  const escapeHtml = typeof HtmlEscape !== 'undefined'
+    ? HtmlEscape.escape
+    : require('../core/html-escape.js').HtmlEscape.escape;
 
   /**
    * Dönem rozeti: metin + tema.badgeClass ile birleşik className.
@@ -92,7 +95,7 @@ const DetailContent = (function () {
       className: 'ui-pressable surface-card surface-card-interactive px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ' +
         (isMaster ? 'text-amber-800 dark:text-amber-300 border border-amber-500/25' : 'text-sky-800 dark:text-sky-300 border border-sky-500/25'),
       title: (isMaster ? 'Doğrudan Hocası (Düz Altın Çizgi): ' : 'Entelektüel Öncülü (Kesikli Mavi Çizgi): ') + t.relationLabel,
-      innerHTML: `<i class="fa-solid ${isMaster ? 'fa-user-graduate text-amber-600 dark:text-amber-400' : 'fa-arrow-up text-sky-600 dark:text-sky-400'} text-[10px]" aria-hidden="true"></i> <span>${t.name}</span> <span class="opacity-50 text-[10px] font-mono">(${isMaster ? 'Hoca' : 'Etki'})</span>`,
+      innerHTML: `<i class="fa-solid ${isMaster ? 'fa-user-graduate text-amber-600 dark:text-amber-400' : 'fa-arrow-up text-sky-600 dark:text-sky-400'} text-[10px]" aria-hidden="true"></i> <span>${escapeHtml(t.name)}</span> <span class="opacity-50 text-[10px] font-mono">(${isMaster ? 'Hoca' : 'Etki'})</span>`,
       isMaster
     };
   }
@@ -108,7 +111,7 @@ const DetailContent = (function () {
       className: 'ui-pressable surface-card surface-card-interactive px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ' +
         (isMaster ? 'text-amber-800 dark:text-amber-300 border border-amber-500/25' : 'text-emerald-800 dark:text-emerald-300 border border-emerald-500/25'),
       title: (isMaster ? 'Doğrudan Öğrencisi (Düz Altın Çizgi): ' : 'Etkilediği Düşünür (Kesikli Mavi Çizgi): ') + s.relationLabel,
-      innerHTML: `<i class="fa-solid ${isMaster ? 'fa-user-graduate text-amber-600 dark:text-amber-400' : 'fa-arrow-down text-emerald-600 dark:text-emerald-400'} text-[10px]" aria-hidden="true"></i> <span>${s.name}</span> <span class="opacity-50 text-[10px] font-mono">(${isMaster ? 'Öğrenci' : 'Etki'})</span>`,
+      innerHTML: `<i class="fa-solid ${isMaster ? 'fa-user-graduate text-amber-600 dark:text-amber-400' : 'fa-arrow-down text-emerald-600 dark:text-emerald-400'} text-[10px]" aria-hidden="true"></i> <span>${escapeHtml(s.name)}</span> <span class="opacity-50 text-[10px] font-mono">(${isMaster ? 'Öğrenci' : 'Etki'})</span>`,
       isMaster
     };
   }

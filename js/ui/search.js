@@ -127,7 +127,7 @@ const SearchUi = (function () {
         item.setAttribute('aria-selected', 'false');
         item.dataset.index = idx;
         item.className = 'search-result-item ui-pressable w-full text-left px-3 py-2 rounded-lg hover:bg-black/[0.05] dark:hover:bg-white/[0.07] flex items-center justify-between text-xs';
-        item.innerHTML = '<div><div class="font-medium text-slate-900 dark:text-slate-100">' + m.name + ' <span class="text-[10px] text-amber-600 dark:text-amber-400 font-normal tabular-nums">(' + m.dates + ')</span></div><div class="text-[10px] text-slate-500 dark:text-slate-400">' + m.school + '</div></div><i class="fa-solid fa-arrow-right text-[10px] text-slate-400" aria-hidden="true"></i>';
+        item.innerHTML = '<div><div class="font-medium text-slate-900 dark:text-slate-100">' + HtmlEscape.escape(m.name) + ' <span class="text-[10px] text-amber-600 dark:text-amber-400 font-normal tabular-nums">(' + HtmlEscape.escape(m.dates) + ')</span></div><div class="text-[10px] text-slate-500 dark:text-slate-400">' + HtmlEscape.escape(m.school) + '</div></div><i class="fa-solid fa-arrow-right text-[10px] text-slate-400" aria-hidden="true"></i>';
         item.addEventListener('click', () => { searchInput.value = m.name; closeSearchDropdown(); selectAndFocus(m.id); });
         searchDropdown.appendChild(item);
       });
