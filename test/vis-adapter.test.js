@@ -41,18 +41,30 @@ function makeFakeDb() {
 
 const getEraTheme = (era, mode) => eraThemes.getEraTheme(era, mode);
 
-test('Geo düzeni: PhilosophyGeo konumu x/y olarak ve düğüm sabitlenir', () => {
+test('Geo düzeni: enjekte edilen geo sağlayıcısı konumu x/y olarak verir ve düğüm sabitlenir', () => {
+  const geo = { getNodePosition: (id) => (id === 'sokrates' ? { x: 1, y: 2 } : null) };
+  const adapter = new GraphToVisAdapter(makeFakeDb(), { geo });
+  const nodes = adapter.toVisNodes({ layoutType: 'geo', isDark: false, getEraTheme });
+  const node = nodes.find(n => n.id === 'sokrates');
+  assert.equal(node.x, 1);
+  assert.equal(node.y, 2);
+  assert.deepEqual(node.fixed, { x: true, y: true });
+});
+
+test('Geo düzeni: geo sağlayıcısı enjekte edilmediyse düğüm sabitlenmez (fixed=false)', () => {
   const adapter = new GraphToVisAdapter(makeFakeDb());
-  globalThis.window = { PhilosophyGeo: { getNodePosition: () => ({ x: 1, y: 2 }) } };
-  try {
-    const nodes = adapter.toVisNodes({ layoutType: 'geo', isDark: false, getEraTheme });
-    const node = nodes.find(n => n.id === 'sokrates');
-    assert.equal(node.x, 1);
-    assert.equal(node.y, 2);
-    assert.deepEqual(node.fixed, { x: true, y: true });
-  } finally {
-    delete globalThis.window;
-  }
+  const nodes = adapter.toVisNodes({ layoutType: 'geo', isDark: false, getEraTheme });
+  const node = nodes.find(n => n.id === 'sokrates');
+  assert.equal(node.fixed, false);
+  assert.equal('x' in node, false);
+});
+
+test('Geo düzeni: geo sağlayıcısı konum vermezse x/y atanmaz ve fixed=false kalır', () => {
+  const adapter = new GraphToVisAdapter(makeFakeDb(), { geo: { getNodePosition: () => null } });
+  const nodes = adapter.toVisNodes({ layoutType: 'geo', isDark: false, getEraTheme });
+  const node = nodes.find(n => n.id === 'sokrates');
+  assert.equal(node.fixed, false);
+  assert.equal('x' in node, false);
 });
 
 test('Geo dışı düzen: fixed false olur, x/y atanmaz', () => {

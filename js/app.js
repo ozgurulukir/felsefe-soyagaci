@@ -4,7 +4,7 @@
  * =========================================================================
  */
 const graphDb = new PhilosophyGraphDatabase(RAW_ENTITIES, RAW_RELATIONS);
-const visAdapter = new GraphToVisAdapter(graphDb);
+const visAdapter = new GraphToVisAdapter(graphDb, { geo: window.PhilosophyGeo });
 
 let network = null;
 let nodesDataSet = null;
@@ -117,6 +117,7 @@ function refreshGraphVisuals() {
       focusedNodeId: currentSelectedId,
       highlightPath: currentHighlightPath,
       isDark: Theme.isDark(),
+      getEraTheme: getEraTheme,
       onSelectNode: function(id) {
         selectAndFocus(id);
       }

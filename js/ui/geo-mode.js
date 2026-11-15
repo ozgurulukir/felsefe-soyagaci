@@ -64,7 +64,7 @@ const GeoMode = (function () {
     if (!window.LeafletMapManager.isInitialized) {
       window.LeafletMapManager.init('map-container', function (id) {
         selectAndFocus(id);
-      }, handleTileFailure);
+      }, handleTileFailure, { geo: window.PhilosophyGeo });
       if (!window.LeafletMapManager.isInitialized) return null;
     }
     return window.LeafletMapManager;
