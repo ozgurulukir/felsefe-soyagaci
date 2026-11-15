@@ -368,6 +368,33 @@ function disableTransitionsDuring(callback) {
   });
 }
 
+// Tek tema uygulama yolu: toggle düğmesi ve sistem prefers-color-scheme dinleyicisi
+// aynı fan-out'u (geçiş bastırma → graf → Leaflet → dönem rozeti) buradan kullanır.
+function applyThemeChange(targetDark, { persist = false } = {}) {
+  disableTransitionsDuring(() => Theme.apply(targetDark));
+  if (persist) {
+    Theme.persist(targetDark ? 'dark' : 'light');
+  }
+
+  // Vis-network tuval düğüm ve kenarlarını yeni temaya göre tazele
+  refreshGraphVisuals();
+
+  if (window.LeafletMapManager && window.LeafletMapManager.isInitialized) {
+    window.LeafletMapManager.setTheme(targetDark);
+  }
+
+  if (currentSelectedId) {
+    const p = graphDb.getEntity(currentSelectedId);
+    if (p) {
+      const badgeEl = document.getElementById('drawer-era-badge');
+      const theme = getEraTheme(p.era, targetDark ? 'dark' : 'light');
+      if (badgeEl && theme) {
+        badgeEl.className = DetailContent.eraBadge(p, theme).className;
+      }
+    }
+  }
+}
+
 // Türkçe Duyarlı Arama ve Klavye Navigasyonu
 const searchInput = document.getElementById('search-input');
 const searchDropdown = document.getElementById('search-dropdown');
@@ -524,29 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
-      const targetTheme = Theme.isDark() ? 'light' : 'dark';
-
-      disableTransitionsDuring(() => Theme.apply(targetTheme === 'dark'));
-      Theme.persist(targetTheme);
-
-      // Vis-network tuval düğüm ve kenarlarını yeni temaya göre tazele
-      refreshGraphVisuals();
-
-      if (window.LeafletMapManager && window.LeafletMapManager.isInitialized) {
-        window.LeafletMapManager.setTheme(targetTheme === 'dark');
-      }
-
-      // Açık çekmece varsa dönem rozetini yeni temaya göre tazele
-      if (currentSelectedId) {
-        const p = graphDb.getEntity(currentSelectedId);
-        if (p) {
-          const badgeEl = document.getElementById('drawer-era-badge');
-          const theme = getEraTheme(p.era, targetTheme);
-          if (badgeEl && theme) {
-            badgeEl.className = DetailContent.eraBadge(p, theme).className;
-          }
-        }
-      }
+      applyThemeChange(!Theme.isDark(), { persist: true });
     });
   }
 
@@ -555,11 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
       try {
         if (!Theme.readStored()) {
-          disableTransitionsDuring(() => Theme.apply(e.matches));
-          refreshGraphVisuals();
-          if (window.LeafletMapManager && window.LeafletMapManager.isInitialized) {
-            window.LeafletMapManager.setTheme(e.matches);
-          }
+          applyThemeChange(e.matches);
         }
       } catch (err) {
         // localStorage erişimi engellenmiş: mevcut tema bozulmadan kalır; dinleyici kurulmaz
