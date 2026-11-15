@@ -9,20 +9,10 @@ const { PhilosophySchema } = require('../js/core/schema.js');
 globalThis.PhilosophySchema = PhilosophySchema;
 const { PhilosophyGraphDatabase } = require('../js/core/graph-db.js');
 
-// schema.test.js ile aynı minimal graphology taklidi
-class StubGraph {
-  constructor() { this._nodes = new Map(); this._edges = new Map(); }
-  get order() { return this._nodes.size; }
-  addNode(id, attrs) { this._nodes.set(id, attrs); }
-  hasNode(id) { return this._nodes.has(id); }
-  getNodeAttributes(id) { return this._nodes.get(id); }
-  addEdgeWithKey(key, from, to, attrs) { this._edges.set(key, { attrs, from, to }); }
-  mapNodes(fn) { return [...this._nodes].map(([id, attrs]) => fn(id, attrs)); }
-  mapEdges(fn) { return [...this._edges].map(([eid, e]) => fn(eid, e.attrs, e.from, e.to)); }
-  mapInEdges(id, fn) { return [...this._edges].filter(([, e]) => e.to === id).map(([eid, e]) => fn(eid, e.attrs, e.from)); }
-  mapOutEdges(id, fn) { return [...this._edges].filter(([, e]) => e.from === id).map(([eid, e]) => fn(eid, e.attrs, e.from, e.to)); }
-}
-globalThis.window = { graphology: { Graph: StubGraph } };
+// graph-db.js tarayıcıda CDN'den gelen graphology'yi bekler; Node'da aynı
+// kütüphane devDependency olarak kuruludur (taklit değil, gerçek Graph).
+const Graph = require('graphology');
+globalThis.window = { graphology: { Graph } };
 
 function makeEntity(id, era = 'antik') {
   return {

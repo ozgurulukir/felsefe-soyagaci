@@ -10,19 +10,19 @@ class GraphToVisAdapter {
     this._db = graphDb;
   }
 
-  // Tema girdileri artık dışarıdan enjekte edilir; verilmezse tarayıcıdaki
-  // global fonksiyonlara düşer (geriye dönük uyumluluk / headless test).
+  // Tema girdileri dışarıdan enjekte edilir (isDark zorunlu; getEraTheme düğümler için zorunlu)
   _resolveTheme({ isDark, getEraTheme: eraThemeFn }) {
-    return {
-      isDark: isDark !== null && isDark !== undefined
-        ? isDark
-        : (typeof isDarkMode === 'function' ? isDarkMode() : true),
-      getEraTheme: eraThemeFn || (typeof getEraTheme === 'function' ? getEraTheme : null)
-    };
+    if (typeof isDark !== 'boolean') {
+      throw new Error('[VisAdapter] isDark enjekte edilmeli (true/false).');
+    }
+    return { isDark, getEraTheme: eraThemeFn || null };
   }
 
   toVisNodes({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null, getEraTheme = null, view = null } = {}) {
     const theme = this._resolveTheme({ isDark, getEraTheme });
+    if (!theme.getEraTheme) {
+      throw new Error('[VisAdapter] getEraTheme enjekte edilmeli (toVisNodes).');
+    }
     const isDarkModeOn = theme.isDark;
     const entities = this._db.getAllEntities();
     if (!view) view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });

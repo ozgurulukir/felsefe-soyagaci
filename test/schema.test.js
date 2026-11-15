@@ -15,21 +15,10 @@ const { RAW_ENTITIES } = require('../js/data/entities.js');
 const { RAW_RELATIONS } = require('../js/data/relations.js');
 const { RAW_ERA_THEMES } = require('../js/data/era-themes.js');
 
-// graph-db.js tarayıcıda CDN'den gelen graphology'yi bekler; Node'da test için
-// kullanılan minimal API yüzeyini (addNode, addEdgeWithKey, map*, order) taklit et.
-class StubGraph {
-  constructor() { this._nodes = new Map(); this._edges = new Map(); }
-  get order() { return this._nodes.size; }
-  addNode(id, attrs) { this._nodes.set(id, attrs); }
-  hasNode(id) { return this._nodes.has(id); }
-  getNodeAttributes(id) { return this._nodes.get(id); }
-  addEdgeWithKey(key, from, to, attrs) { this._edges.set(key, { attrs, from, to }); }
-  mapNodes(fn) { return [...this._nodes].map(([id, attrs]) => fn(id, attrs)); }
-  mapEdges(fn) { return [...this._edges].map(([eid, e]) => fn(eid, e.attrs, e.from, e.to)); }
-  mapInEdges(id, fn) { return [...this._edges].filter(([, e]) => e.to === id).map(([eid, e]) => fn(eid, e.attrs, e.from)); }
-  mapOutEdges(id, fn) { return [...this._edges].filter(([, e]) => e.from === id).map(([eid, e]) => fn(eid, e.attrs, e.from, e.to)); }
-}
-globalThis.window = { graphology: { Graph: StubGraph } };
+// graph-db.js tarayıcıda CDN'den gelen graphology'yi bekler; Node'da aynı
+// kütüphane devDependency olarak kuruludur (taklit değil, gerçek Graph).
+const Graph = require('graphology');
+globalThis.window = { graphology: { Graph } };
 
 const ERAS = PhilosophySchema.ERAS;
 

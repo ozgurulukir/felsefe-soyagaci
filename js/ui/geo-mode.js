@@ -49,6 +49,14 @@ const GeoMode = (function () {
     return ViewUi.deriveEngineState({ layout: getLayout(), geoAtlasMode }).isLeafletEngine;
   }
 
+  // Karo motoru şu an kullanılabilir mi? (motor seçimi + Leaflet kütüphanesi hazır)
+  // Çağıranlar `isLeafletEngine() && window.LeafletMapManager` yerine bunu kullanır.
+  function isLeafletReady() {
+    return isLeafletEngine() &&
+      typeof window !== 'undefined' &&
+      !!(window.LeafletMapManager && window.LeafletMapManager.isInitialized);
+  }
+
   // Geo motorları arasındaki seam: ileride üçüncü bir motor (ör. stilize tema) buraya eklenir.
   // Leaflet kütüphanesi (CDN) yüklenemediysen null döner — çağıran taraf Atlas'a düşebilir.
   function initLeafletIfNeeded() {
@@ -176,6 +184,7 @@ const GeoMode = (function () {
     isAtlasMode,
     setAtlasMode: setGeoAtlasMode,
     isLeafletEngine,
+    isLeafletReady,
     activateEngine: activateGeoEngine,
     updateModeToggle: updateGeoModeToggle,
     applyContainerVisibility: applyGeoContainerVisibility,

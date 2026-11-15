@@ -124,3 +124,9 @@ test('relations: tüm varlıklar tek bir bağlı bileşen (connected component) 
   assert.deepStrictEqual(unvisited, [], `ana ağdan kopuk varlıklar: ${unvisited.join(', ')}`);
 });
 
+test('pathfinder varsayılanları (sokrates, nietzsche) veri setinde mevcut', () => {
+  // js/ui/pathfinder.js açılışta bu iki id'yi seçili getirir; veri değişirse
+  // sessizce boş seçime düşer — bu test onu yakalar.
+  assert.ok(entityIds.has('sokrates'), 'pathfinder varsayılanı eksik: sokrates');
+  assert.ok(entityIds.has('nietzsche'), 'pathfinder varsayılanı eksik: nietzsche');
+});

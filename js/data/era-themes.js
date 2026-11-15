@@ -125,18 +125,17 @@ const RAW_ERA_THEMES = Object.freeze({
   }
 });
 
-function isDarkMode() {
-  return document.documentElement.classList.contains('dark');
-}
-
-// mode verilmezse DOM'dan türetilir; testler ve headless kullanım açık mod geçebilir
-function getEraTheme(era, mode = null) {
-  const resolvedMode = mode || (isDarkMode() ? 'dark' : 'light');
-  const palette = RAW_ERA_THEMES[resolvedMode] || RAW_ERA_THEMES.dark;
+// mode zorunlu ('dark'|'light'): DOM erişimi bu veri katmanında değil,
+// çağıran tarafta Theme.isDark() ile çözülür
+function getEraTheme(era, mode) {
+  if (mode !== 'dark' && mode !== 'light') {
+    throw new Error(`[EraThemes] mode 'dark' | 'light' olmalı (gelen: ${mode})`);
+  }
+  const palette = RAW_ERA_THEMES[mode];
   return palette[era] || palette.antik;
 }
 
 // Düğüm (global script) ve Node.js (test) ortamlarında aynı dosya çalışsın
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { RAW_ERA_THEMES, isDarkMode, getEraTheme };
+  module.exports = { RAW_ERA_THEMES, getEraTheme };
 }

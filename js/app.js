@@ -110,19 +110,17 @@ function getNetworkOptions(layoutType) {
 
 // Pozisyonları sıfırlamadan sadece düğüm ve kenar stillerini günceller
 function refreshGraphVisuals() {
-  if (GeoMode.isLeafletEngine()) {
-    if (window.LeafletMapManager && window.LeafletMapManager.isInitialized) {
-      window.LeafletMapManager.render({
-        db: graphDb,
-        filteredEra: currentEraFilter,
-        focusedNodeId: currentSelectedId,
-        highlightPath: currentHighlightPath,
-        isDark: isDarkMode(),
-        onSelectNode: function(id) {
-          selectAndFocus(id);
-        }
-      });
-    }
+  if (GeoMode.isLeafletReady()) {
+    window.LeafletMapManager.render({
+      db: graphDb,
+      filteredEra: currentEraFilter,
+      focusedNodeId: currentSelectedId,
+      highlightPath: currentHighlightPath,
+      isDark: Theme.isDark(),
+      onSelectNode: function(id) {
+        selectAndFocus(id);
+      }
+    });
   } else {
     if (!nodesDataSet || !edgesDataSet) return;
     const { nodes: updatedNodes, edges: updatedEdges } = visAdapter.toVisGraph({
@@ -130,7 +128,8 @@ function refreshGraphVisuals() {
       focusedNodeId: currentSelectedId,
       highlightPath: currentHighlightPath,
       layoutType: currentLayout,
-      isDark: isDarkMode()
+      isDark: Theme.isDark(),
+      getEraTheme: getEraTheme
     });
 
     nodesDataSet.update(updatedNodes);
@@ -164,7 +163,7 @@ function initNetwork() {
     container.innerHTML = '<div class="h-full w-full flex items-center justify-center px-6 text-center text-sm text-slate-500 dark:text-slate-400">Ağ kütüphanesi (vis-network) yüklenemedi. İnternet bağlantınızı kontrol edip sayfayı yenileyin.</div>';
     return;
   }
-  const initialGraph = visAdapter.toVisGraph({ filteredEra: currentEraFilter, layoutType: currentLayout, isDark: isDarkMode() });
+  const initialGraph = visAdapter.toVisGraph({ filteredEra: currentEraFilter, layoutType: currentLayout, isDark: Theme.isDark(), getEraTheme: getEraTheme });
   nodesDataSet = new vis.DataSet(initialGraph.nodes);
   edgesDataSet = new vis.DataSet(initialGraph.edges);
 
@@ -177,7 +176,7 @@ function initNetwork() {
 
   network.on('beforeDrawing', function(ctx) {
     if (currentLayout === 'geo' && window.PhilosophyAtlas && window.PhilosophyGeo) {
-      window.PhilosophyAtlas.drawMap(ctx, isDarkMode(), window.PhilosophyGeo.projectRaw);
+      window.PhilosophyAtlas.drawMap(ctx, Theme.isDark(), window.PhilosophyGeo.projectRaw);
     }
   });
 
@@ -235,7 +234,7 @@ function showPhilosopherDetails(id, { preservePath = false } = {}) {
   document.getElementById('drawer-school').textContent = p.school;
 
   // Dönem rozetini dinamik renklendir (saf model: DetailContent)
-  const badge = DetailContent.eraBadge(p, getEraTheme(p.era));
+  const badge = DetailContent.eraBadge(p, getEraTheme(p.era, Theme.isDark() ? 'dark' : 'light'));
   const badgeEl = document.getElementById('drawer-era-badge');
   badgeEl.textContent = badge.text;
   badgeEl.className = badge.className;
@@ -326,7 +325,7 @@ function selectAndFocus(id) {
   showPhilosopherDetails(id);
   refreshGraphVisuals();
 
-  if (GeoMode.isLeafletEngine() && window.LeafletMapManager) {
+  if (GeoMode.isLeafletReady()) {
     window.LeafletMapManager.focusNode(id, graphDb);
   } else if (network) {
     network.selectNodes([id]);
@@ -384,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshGraphVisuals,
     showPhilosopherDetails,
     getAnimOptions,
-    isLeafletEngine: () => GeoMode.isLeafletEngine()
+    isLeafletReady: () => GeoMode.isLeafletReady()
   });
   GeoMode.init({
     getLayout: () => currentLayout,
@@ -478,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('zoom-in-btn').addEventListener('click', () => {
-    if (GeoMode.isLeafletEngine() && window.LeafletMapManager) {
+    if (GeoMode.isLeafletReady()) {
       window.LeafletMapManager.zoomIn();
     } else if (network) {
       const currentScale = network.getScale();
@@ -487,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('zoom-out-btn').addEventListener('click', () => {
-    if (GeoMode.isLeafletEngine() && window.LeafletMapManager) {
+    if (GeoMode.isLeafletReady()) {
       window.LeafletMapManager.zoomOut();
     } else if (network) {
       const currentScale = network.getScale();
@@ -496,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('fit-btn').addEventListener('click', () => {
-    if (GeoMode.isLeafletEngine() && window.LeafletMapManager) {
+    if (GeoMode.isLeafletReady()) {
       window.LeafletMapManager.fitAll();
     } else if (network && currentLayout === 'geo') {
       GeoMode.frameAtlasView();
@@ -524,22 +523,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
-      const isDarkNow = document.documentElement.classList.contains('dark');
-      const targetTheme = isDarkNow ? 'light' : 'dark';
+      const targetTheme = Theme.isDark() ? 'light' : 'dark';
 
-      disableTransitionsDuring(() => {
-        if (targetTheme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      });
-
-      try {
-        localStorage.setItem('felsefe-theme', targetTheme);
-      } catch (e) {
-        // LocalStorage erişimi engellenmiş ortamlarda sessizce geç
-      }
+      disableTransitionsDuring(() => Theme.apply(targetTheme === 'dark'));
+      Theme.persist(targetTheme);
 
       // Vis-network tuval düğüm ve kenarlarını yeni temaya göre tazele
       refreshGraphVisuals();
@@ -553,9 +540,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const p = graphDb.getEntity(currentSelectedId);
         if (p) {
           const badgeEl = document.getElementById('drawer-era-badge');
-          const theme = getEraTheme(p.era);
+          const theme = getEraTheme(p.era, targetTheme);
           if (badgeEl && theme) {
-            badgeEl.className = 'px-2.5 py-1 rounded-full text-[11px] font-semibold border ' + theme.badgeClass;
+            badgeEl.className = DetailContent.eraBadge(p, theme).className;
           }
         }
       }
@@ -566,14 +553,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
       try {
-        if (!localStorage.getItem('felsefe-theme')) {
-          disableTransitionsDuring(() => {
-            if (e.matches) {
-              document.documentElement.classList.add('dark');
-            } else {
-              document.documentElement.classList.remove('dark');
-            }
-          });
+        if (!Theme.readStored()) {
+          disableTransitionsDuring(() => Theme.apply(e.matches));
           refreshGraphVisuals();
           if (window.LeafletMapManager && window.LeafletMapManager.isInitialized) {
             window.LeafletMapManager.setTheme(e.matches);
@@ -754,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       refreshGraphVisuals();
 
-      if (GeoMode.isLeafletEngine() && window.LeafletMapManager) {
+      if (GeoMode.isLeafletReady()) {
         if (era === 'all') {
           window.LeafletMapManager.fitAll();
         } else {

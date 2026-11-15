@@ -18,13 +18,13 @@ const PathfinderUi = (function () {
   let refreshGraphVisuals = null;
   let showPhilosopherDetails = null;
   let getAnimOptions = null;
-  let isLeafletEngine = null;
+  let isLeafletReady = null;
 
   /**
    * app.js DOMContentLoaded başında çağrılır (SearchUi.init'den sonra).
    * @param {object} deps — plana göre: graphDb, getNetwork, setPathState,
    *   closeDrawer, refreshGraphVisuals, showPhilosopherDetails, getAnimOptions,
-   *   isLeafletEngine (thunk; GeoMode hazır olduktan sonra değerlendirilir)
+   *   isLeafletReady (thunk; GeoMode hazır olduktan sonra değerlendirilir)
    */
   function init(deps) {
     graphDb = deps.graphDb;
@@ -34,7 +34,7 @@ const PathfinderUi = (function () {
     refreshGraphVisuals = deps.refreshGraphVisuals;
     showPhilosopherDetails = deps.showPhilosopherDetails;
     getAnimOptions = deps.getAnimOptions;
-    isLeafletEngine = deps.isLeafletEngine;
+    isLeafletReady = deps.isLeafletReady;
   }
 
   function populatePathfinderSelects() {
@@ -90,7 +90,7 @@ const PathfinderUi = (function () {
         stepBtn.classList.remove('text-amber-800', 'dark:text-amber-300');
         stepBtn.classList.add('bg-amber-400', 'text-slate-950', 'font-semibold');
         showPhilosopherDetails(nodeId, { preservePath: true });
-        if (isLeafletEngine() && window.LeafletMapManager) {
+        if (isLeafletReady()) {
           window.LeafletMapManager.focusNode(nodeId, graphDb);
         } else if (getNetwork()) {
           getNetwork().focus(nodeId, { scale: 1.15, animation: getAnimOptions(500) });
@@ -106,7 +106,7 @@ const PathfinderUi = (function () {
       }
     });
 
-    if (isLeafletEngine() && window.LeafletMapManager) {
+    if (isLeafletReady()) {
       window.LeafletMapManager.fitPath(path);
     } else if (getNetwork()) {
       getNetwork().fit({ nodes: path, animation: getAnimOptions(700) });

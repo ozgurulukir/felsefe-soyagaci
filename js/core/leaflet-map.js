@@ -60,7 +60,7 @@ const LeafletMapManager = (function () {
       return;
     }
 
-    const isDark = typeof isDarkMode === 'function' ? isDarkMode() : true;
+    const isDark = Theme.isDark();
     tileFailureCallback = typeof onTileFailure === 'function' ? onTileFailure : null;
 
     // Akdeniz / Avrasya odaklı başlangıç görünümü (İskoçya'dan Horasan'a, Kurtuba'dan İskenderiye'ye)
@@ -174,7 +174,7 @@ const LeafletMapManager = (function () {
       const isDimmed = nodeState.isDimmed;
       const isHighlighted = nodeState.isHighlighted;
       const isPrimaryFocus = nodeState.isPrimaryFocus;
-      const theme = getEraTheme(p.era);
+      const theme = getEraTheme(p.era, isDark ? 'dark' : 'light');
 
       const markerHtml = `
         <div class="geo-philosopher-pill ${isPrimaryFocus ? 'is-focused' : ''} ${isHighlighted ? 'is-highlighted' : ''} ${isDimmed ? 'is-dimmed' : ''}" style="--era-color: ${theme.border}; --era-bg: ${theme.background};">
