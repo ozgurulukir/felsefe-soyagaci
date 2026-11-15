@@ -6,8 +6,11 @@
  * bu adapter yalnızca vis-network piksel sabitleriyle state'i gösterir.
  */
 class GraphToVisAdapter {
-  constructor(graphDb) {
+  // geo, veri katmanındaki koordinat sağlayıcısıdır (PhilosophyGeo); enjekte edilmezse
+  // geo konumlandırma devre dışı kalır (non-geo davranış: fixed=false)
+  constructor(graphDb, { geo = null } = {}) {
     this._db = graphDb;
+    this._geo = geo;
   }
 
   // Tema girdileri dışarıdan enjekte edilir (isDark zorunlu; getEraTheme düğümler için zorunlu)
@@ -94,12 +97,15 @@ class GraphToVisAdapter {
   }
 
   _applyGeoPosition(nodeObj, p, isGeo) {
-    if (isGeo && window.PhilosophyGeo) {
-      const geoPos = window.PhilosophyGeo.getNodePosition(p.id);
+    if (isGeo && this._geo) {
+      const geoPos = this._geo.getNodePosition(p.id);
       if (geoPos) {
         nodeObj.x = geoPos.x;
         nodeObj.y = geoPos.y;
         nodeObj.fixed = { x: true, y: true };
+      } else {
+        // Koordinatı olmayan düşünür serbest kalır (vis-network varsayılanı zaten fixed=false)
+        nodeObj.fixed = false;
       }
     } else {
       nodeObj.fixed = false;

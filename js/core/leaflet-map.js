@@ -39,6 +39,8 @@ const LeafletMapManager = (function () {
   let markersLayer = null;
   let edgesLayer = null;
   let isMapInitialized = false;
+  // Veri katmanı bağımlılıkları init ile enjekte edilir (window.PhilosophyGeo küresel okuması yerine)
+  let geoProvider = null;
 
   // Karo hata sezgisi: art arda hata, tek başarılı yükleme bile olmadan birikirse
   // onTileFailure callback'i (yerleşik Atlas motoruna geçiş) bir kez tetiklenir.
@@ -53,12 +55,14 @@ const LeafletMapManager = (function () {
     attribution: 'Tiles &copy; Esri'
   };
 
-  function init(containerId, onSelectNode, onTileFailure) {
+  // options.geo: koordinat sağlayıcısı (PhilosophyGeo). Enjekte edilmezse render/focus/fit sessizce no-op olur.
+  function init(containerId, onSelectNode, onTileFailure, { geo = null } = {}) {
     if (isMapInitialized) return;
     if (typeof L === 'undefined') {
       console.error('[Leaflet Error] Leaflet kütüphanesi yüklenemedi.');
       return;
     }
+    geoProvider = geo;
 
     const isDark = Theme.isDark();
     tileFailureCallback = typeof onTileFailure === 'function' ? onTileFailure : null;
@@ -110,13 +114,18 @@ const LeafletMapManager = (function () {
     tileLayer.setUrl(isDark ? TILES.dark : TILES.light);
   }
 
-  function render({ db, filteredEra = 'all', focusedNodeId = null, highlightPath = null, isDark = true, onSelectNode }) {
+  function render({ db, filteredEra = 'all', focusedNodeId = null, highlightPath = null, isDark = true, getEraTheme = null, onSelectNode }) {
     if (!map || !isMapInitialized) return;
 
     markersLayer.clearLayers();
     edgesLayer.clearLayers();
 
-    if (!window.PhilosophyGeo) return;
+    if (!geoProvider) return;
+
+    // Tema girdisi dışarıdan enjekte edilir (vis-adapter'daki sözleşmeyle aynı)
+    if (typeof getEraTheme !== 'function') {
+      throw new Error('[LeafletMapManager] getEraTheme enjekte edilmeli (render).');
+    }
 
     // Vurgu/karartma kararları ortak ViewFilter modülünden gelir (graf görünümüyle aynı semantik)
     const view = ViewFilter.resolveViewStates(db, { filteredEra, focusedNodeId, highlightPath });
@@ -128,8 +137,8 @@ const LeafletMapManager = (function () {
       const pTo = db.getEntity(rel.to);
       if (!pFrom || !pTo) return;
 
-      const c1 = window.PhilosophyGeo.getPhilosopherLatLng(rel.from);
-      const c2 = window.PhilosophyGeo.getPhilosopherLatLng(rel.to);
+      const c1 = geoProvider.getPhilosopherLatLng(rel.from);
+      const c2 = geoProvider.getPhilosopherLatLng(rel.to);
       if (!c1 || !c2) return;
 
       const edgeState = view.edgeStates.get(rel.id) || { isDimmed: false, isHighlighted: false };
@@ -167,7 +176,7 @@ const LeafletMapManager = (function () {
     // 2. Düğümleri (Filozofları) Şık HTML Hapları (Pill Markers) Olarak Yerleştir
     const entities = db.getAllEntities();
     entities.forEach(p => {
-      const coords = window.PhilosophyGeo.getPhilosopherLatLng(p.id);
+      const coords = geoProvider.getPhilosopherLatLng(p.id);
       if (!coords) return;
 
       const nodeState = view.nodeStates.get(p.id) || { isDimmed: false, isHighlighted: false, isPrimaryFocus: false };
@@ -208,8 +217,8 @@ const LeafletMapManager = (function () {
   }
 
   function focusNode(id, db) {
-    if (!map || !window.PhilosophyGeo) return;
-    const coords = window.PhilosophyGeo.getPhilosopherLatLng(id);
+    if (!map || !geoProvider) return;
+    const coords = geoProvider.getPhilosopherLatLng(id);
     if (coords) {
       map.flyTo(coords, Math.max(map.getZoom(), 6), { duration: 1.2 });
     }
@@ -222,8 +231,8 @@ const LeafletMapManager = (function () {
   }
 
   function fitPath(pathIds) {
-    if (!map || !window.PhilosophyGeo || !pathIds || pathIds.length === 0) return;
-    const coordsList = pathIds.map(id => window.PhilosophyGeo.getPhilosopherLatLng(id)).filter(Boolean);
+    if (!map || !geoProvider || !pathIds || pathIds.length === 0) return;
+    const coordsList = pathIds.map(id => geoProvider.getPhilosopherLatLng(id)).filter(Boolean);
     if (coordsList.length > 1) {
       map.fitBounds(L.latLngBounds(coordsList).pad(0.25), { animate: true, duration: 1.0 });
     }
