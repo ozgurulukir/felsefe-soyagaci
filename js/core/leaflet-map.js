@@ -6,6 +6,33 @@
  * kavisli jeodezik yaylarla (flight-path arcs) interaktif görselleştirmesi.
  */
 
+// İki coğrafi nokta arasında hafif kavisli yay (Quadratic Bezier) noktaları üretir
+function getCurvedArcPoints(p1, p2, curveFactor = 0.14) {
+  const lat1 = p1[0];
+  const lng1 = p1[1];
+  const lat2 = p2[0];
+  const lng2 = p2[1];
+
+  const midLat = (lat1 + lat2) / 2;
+  const midLng = (lng1 + lng2) / 2;
+  const dLat = lat2 - lat1;
+  const dLng = lng2 - lng1;
+
+  // Normal vektör ile hafif kavisleme
+  const ctrlLat = midLat - dLng * curveFactor;
+  const ctrlLng = midLng + dLat * curveFactor;
+
+  const points = [];
+  const segments = 16;
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * ctrlLat + t * t * lat2;
+    const lng = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * ctrlLng + t * t * lng2;
+    points.push([lat, lng]);
+  }
+  return points;
+}
+
 const LeafletMapManager = (function () {
   let map = null;
   let tileLayer = null;
@@ -25,33 +52,6 @@ const LeafletMapManager = (function () {
     light: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Tiles &copy; Esri'
   };
-
-  // İki coğrafi nokta arasında hafif kavisli yay (Quadratic Bezier) noktaları üretir
-  function getCurvedArcPoints(p1, p2, curveFactor = 0.14) {
-    const lat1 = p1[0];
-    const lng1 = p1[1];
-    const lat2 = p2[0];
-    const lng2 = p2[1];
-
-    const midLat = (lat1 + lat2) / 2;
-    const midLng = (lng1 + lng2) / 2;
-    const dLat = lat2 - lat1;
-    const dLng = lng2 - lng1;
-
-    // Normal vektör ile hafif kavisleme
-    const ctrlLat = midLat - dLng * curveFactor;
-    const ctrlLng = midLng + dLat * curveFactor;
-
-    const points = [];
-    const segments = 16;
-    for (let i = 0; i <= segments; i++) {
-      const t = i / segments;
-      const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * ctrlLat + t * t * lat2;
-      const lng = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * ctrlLng + t * t * lng2;
-      points.push([lat, lng]);
-    }
-    return points;
-  }
 
   function init(containerId, onSelectNode, onTileFailure) {
     if (isMapInitialized) return;
@@ -121,16 +121,6 @@ const LeafletMapManager = (function () {
     // Vurgu/karartma kararları ortak ViewFilter modülünden gelir (graf görünümüyle aynı semantik)
     const view = ViewFilter.resolveViewStates(db, { filteredEra, focusedNodeId, highlightPath });
 
-    // Hoca-Öğrenci (Master) = Altın Sarısı / Amber (Düz Çizgi)
-    const masterNormal = isDark ? '#f59e0b' : '#b45309';
-    const masterHighlight = isDark ? '#fbbf24' : '#d97706';
-    const masterDimmed = isDark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(180, 83, 9, 0.15)';
-
-    // Entelektüel Etki (Influence) = Gök Mavisi / Sky Blue (Kesikli Çizgi)
-    const influenceNormal = isDark ? '#38bdf8' : '#0284c7';
-    const influenceHighlight = isDark ? '#38bdf8' : '#0ea5e9';
-    const influenceDimmed = isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.15)';
-
     // 1. Kenarları (İlişkileri) Kavisli Yaylar Olarak Çiz
     const relations = db.getAllRelations();
     relations.forEach(rel => {
@@ -146,18 +136,15 @@ const LeafletMapManager = (function () {
       const isDimmed = edgeState.isDimmed;
       const isEdgeHighlighted = edgeState.isHighlighted;
       const isMaster = rel.type === 'master';
-      const baseColor = isMaster ? masterNormal : influenceNormal;
-      const activeColor = isMaster ? masterHighlight : influenceHighlight;
-      const inactiveColor = isMaster ? masterDimmed : influenceDimmed;
-      const resolvedColor = isDimmed ? inactiveColor : (isEdgeHighlighted ? activeColor : baseColor);
+      const visual = EdgeStyle.edgeVisual({ isMaster, isDimmed, isHighlighted: isEdgeHighlighted, isDark });
 
       const arcPoints = getCurvedArcPoints(c1, c2, 0.12);
 
       const polyline = L.polyline(arcPoints, {
-        color: resolvedColor,
-        weight: isEdgeHighlighted ? (isMaster ? 3.5 : 2.8) : (isMaster ? 2.4 : 1.5),
-        dashArray: isMaster ? null : '6, 7',
-        opacity: isDimmed ? 0.18 : (isEdgeHighlighted ? 1.0 : 0.85),
+        color: visual.color,
+        weight: visual.width,
+        dashArray: visual.dash ? visual.dash.join(', ') : null,
+        opacity: visual.opacity,
         lineCap: 'round',
         lineJoin: 'round'
       });
@@ -165,7 +152,7 @@ const LeafletMapManager = (function () {
       polyline.bindTooltip(
         `<b>${HtmlEscape.escape(pFrom.name)}</b> ➔ <b>${HtmlEscape.escape(pTo.name)}</b><br>` +
         `<span style="color: ${isMaster ? '#fbbf24' : '#38bdf8'}; font-weight: 600;">` +
-        `${isMaster ? '● Hoca – Öğrenci (Düz Altın Çizgi)' : '╌ Entelektüel Etki (Kesikli Mavi Çizgi)'}</span><br>` +
+        `${isMaster ? '● ' : '╌ '}${EdgeStyle.legendLabel(isMaster)}</span><br>` +
         `<span style="opacity: 0.85;">${HtmlEscape.escape(rel.label)}</span>`,
         {
           sticky: true,
@@ -267,4 +254,9 @@ const LeafletMapManager = (function () {
 
 if (typeof window !== 'undefined') {
   window.LeafletMapManager = LeafletMapManager;
+}
+
+// Node.js (test) ortamında saf yay matematiği ve yönetici dışa açılır
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { LeafletMapManager, getCurvedArcPoints };
 }

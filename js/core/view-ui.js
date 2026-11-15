@@ -22,12 +22,12 @@ const ViewUi = (function () {
   function deriveBanner(db, state) {
     const path = state.pathId;
     if (path && path.length > 1) {
-      return {
-        kind: 'path',
-        first: db.getEntity(path[0]),
-        last: db.getEntity(path[path.length - 1]),
-        steps: path.length - 1
-      };
+      const first = db.getEntity(path[0]);
+      const last = db.getEntity(path[path.length - 1]);
+      // Bayat yol id'si (veri değişti) bandı çökertmesin; seçime düş
+      if (first && last) {
+        return { kind: 'path', first, last, steps: path.length - 1 };
+      }
     }
     if (state.selectedId) {
       const person = db.getEntity(state.selectedId);

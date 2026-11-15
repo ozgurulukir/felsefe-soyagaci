@@ -51,6 +51,17 @@ test('Bant: seçilen id var olmayan bir düşünüreyse none döner (çökmez)',
   assert.strictEqual(view.kind, 'none');
 });
 
+test('Bant: yol uçlarından biri bayatsa (veri değişti) seçime düşer, çökmez', () => {
+  const view = ViewUi.deriveBanner(db, { pathId: ['sokrates', 'yok-boyle'], selectedId: 'platon' });
+  assert.strictEqual(view.kind, 'focus');
+  assert.strictEqual(view.person.name, 'Platon');
+});
+
+test('Bant: yol bayatsa ve seçim de yoksa none döner', () => {
+  const view = ViewUi.deriveBanner(db, { pathId: ['yok-1', 'yok-2'], selectedId: null });
+  assert.strictEqual(view.kind, 'none');
+});
+
 test('Çekmece politikası: yol varken close-drawer, yokken clear-focus', () => {
   assert.strictEqual(ViewUi.drawerActionFor({ pathId: ['sokrates', 'platon'] }), 'close-drawer');
   assert.strictEqual(ViewUi.drawerActionFor({ pathId: null }), 'clear-focus');

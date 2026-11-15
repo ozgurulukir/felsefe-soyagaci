@@ -26,8 +26,8 @@ class StubGraph {
   addEdgeWithKey(key, from, to, attrs) { this._edges.set(key, { attrs, from, to }); }
   mapNodes(fn) { return [...this._nodes].map(([id, attrs]) => fn(id, attrs)); }
   mapEdges(fn) { return [...this._edges].map(([eid, e]) => fn(eid, e.attrs, e.from, e.to)); }
-  mapInEdges(id, fn) { return [...this._edges].filter(e => e.to === id).map(([eid, e]) => fn(eid, e.attrs, e.from)); }
-  mapOutEdges(id, fn) { return [...this._edges].filter(e => e.from === id).map(([eid, e]) => fn(eid, e.attrs, e.from, e.to)); }
+  mapInEdges(id, fn) { return [...this._edges].filter(([, e]) => e.to === id).map(([eid, e]) => fn(eid, e.attrs, e.from)); }
+  mapOutEdges(id, fn) { return [...this._edges].filter(([, e]) => e.from === id).map(([eid, e]) => fn(eid, e.attrs, e.from, e.to)); }
 }
 globalThis.window = { graphology: { Graph: StubGraph } };
 

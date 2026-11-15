@@ -3,8 +3,10 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const { ViewFilter } = require('../js/core/view-filter.js');
-// vis-adapter global script olarak yazıldığı için Node'da ViewFilter'ı global'e koy
+const { EdgeStyle } = require('../js/core/edge-style.js');
+// vis-adapter global script olarak yazıldığı için Node'da bağımlılıkları global'e koy
 globalThis.ViewFilter = ViewFilter;
+globalThis.EdgeStyle = EdgeStyle;
 const { GraphToVisAdapter } = require('../js/core/vis-adapter.js');
 
 // Küçük sahte db: ViewFilter'ın ihtiyaç duyduğu arayüz (getAllEntities,

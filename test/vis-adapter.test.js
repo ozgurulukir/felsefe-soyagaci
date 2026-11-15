@@ -3,8 +3,10 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const { ViewFilter } = require('../js/core/view-filter.js');
-// vis-adapter global script olarak yazıldığı için Node'da ViewFilter'ı global'e koy
+const { EdgeStyle } = require('../js/core/edge-style.js');
+// vis-adapter global script olarak yazıldığı için Node'da bağımlılıkları global'e koy
 globalThis.ViewFilter = ViewFilter;
+globalThis.EdgeStyle = EdgeStyle;
 const { GraphToVisAdapter } = require('../js/core/vis-adapter.js');
 const eraThemes = require('../js/data/era-themes.js');
 
@@ -60,6 +62,21 @@ test('Geo dışı düzen: fixed false olur, x/y atanmaz', () => {
   assert.equal(node.fixed, false);
   assert.equal('x' in node, false);
   assert.equal('y' in node, false);
+});
+
+test('toVisGraph: ViewFilter tek geçişte çözülür, nodes+edges birlikte döner', () => {
+  const adapter = new GraphToVisAdapter(makeFakeDb());
+  const original = ViewFilter.resolveViewStates;
+  let calls = 0;
+  globalThis.ViewFilter = { resolveViewStates: (...args) => { calls++; return original(...args); } };
+  try {
+    const { nodes, edges } = adapter.toVisGraph({ filteredEra: 'antik', isDark: true, getEraTheme });
+    assert.equal(calls, 1);
+    assert.equal(nodes.length, 4);
+    assert.equal(edges.length, 3);
+  } finally {
+    globalThis.ViewFilter = ViewFilter;
+  }
 });
 
 test('Donuk palet: koyu/açık tema renkleri değişmedi', () => {

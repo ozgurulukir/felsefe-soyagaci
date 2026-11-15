@@ -125,14 +125,7 @@ function refreshGraphVisuals() {
     }
   } else {
     if (!nodesDataSet || !edgesDataSet) return;
-    const updatedNodes = visAdapter.toVisNodes({
-      filteredEra: currentEraFilter,
-      focusedNodeId: currentSelectedId,
-      highlightPath: currentHighlightPath,
-      layoutType: currentLayout,
-      isDark: isDarkMode()
-    });
-    const updatedEdges = visAdapter.toVisEdges({
+    const { nodes: updatedNodes, edges: updatedEdges } = visAdapter.toVisGraph({
       filteredEra: currentEraFilter,
       focusedNodeId: currentSelectedId,
       highlightPath: currentHighlightPath,
@@ -171,8 +164,9 @@ function initNetwork() {
     container.innerHTML = '<div class="h-full w-full flex items-center justify-center px-6 text-center text-sm text-slate-500 dark:text-slate-400">Ağ kütüphanesi (vis-network) yüklenemedi. İnternet bağlantınızı kontrol edip sayfayı yenileyin.</div>';
     return;
   }
-  nodesDataSet = new vis.DataSet(visAdapter.toVisNodes({ filteredEra: currentEraFilter, layoutType: currentLayout, isDark: isDarkMode() }));
-  edgesDataSet = new vis.DataSet(visAdapter.toVisEdges({ filteredEra: currentEraFilter, layoutType: currentLayout, isDark: isDarkMode() }));
+  const initialGraph = visAdapter.toVisGraph({ filteredEra: currentEraFilter, layoutType: currentLayout, isDark: isDarkMode() });
+  nodesDataSet = new vis.DataSet(initialGraph.nodes);
+  edgesDataSet = new vis.DataSet(initialGraph.edges);
 
   const data = {
     nodes: nodesDataSet,

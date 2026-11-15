@@ -21,11 +21,11 @@ class GraphToVisAdapter {
     };
   }
 
-  toVisNodes({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null, getEraTheme = null } = {}) {
+  toVisNodes({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null, getEraTheme = null, view = null } = {}) {
     const theme = this._resolveTheme({ isDark, getEraTheme });
     const isDarkModeOn = theme.isDark;
     const entities = this._db.getAllEntities();
-    const view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });
+    if (!view) view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });
     const isGeo = layoutType === 'geo';
     const palette = this._dimPalette(isDarkModeOn);
 
@@ -107,23 +107,22 @@ class GraphToVisAdapter {
     return nodeObj;
   }
 
-  toVisEdges({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null } = {}) {
+  // Düğümleri ve kenarları tek geçişte üretir; ViewFilter yalnızca bir kez çözülür
+  toVisGraph(ctx = {}) {
+    const view = ViewFilter.resolveViewStates(this._db, ctx);
+    return {
+      nodes: this.toVisNodes({ ...ctx, view }),
+      edges: this.toVisEdges({ ...ctx, view })
+    };
+  }
+
+  toVisEdges({ filteredEra = 'all', focusedNodeId = null, highlightPath = null, layoutType = 'UD', isDark = null, view = null } = {}) {
     const theme = this._resolveTheme({ isDark });
     const isDarkModeOn = theme.isDark;
     const relations = this._db.getAllRelations();
-    const view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });
+    if (!view) view = ViewFilter.resolveViewStates(this._db, { filteredEra, focusedNodeId, highlightPath });
 
     const forceDir = layoutType === 'LR' ? 'horizontal' : (layoutType === 'UD' ? 'vertical' : 'none');
-
-    // Hoca-Öğrenci (Master) = Altın Sarısı / Amber (Düz Çizgi)
-    const masterNormal = isDarkModeOn ? '#f59e0b' : '#b45309';
-    const masterHighlight = isDarkModeOn ? '#fbbf24' : '#d97706';
-    const masterDimmed = isDarkModeOn ? 'rgba(245, 158, 11, 0.15)' : 'rgba(180, 83, 9, 0.18)';
-
-    // Entelektüel Etki (Influence) = Gök Mavisi / Sky Blue (Kesikli Çizgi)
-    const influenceNormal = isDarkModeOn ? '#38bdf8' : '#0284c7';
-    const influenceHighlight = isDarkModeOn ? '#38bdf8' : '#0ea5e9';
-    const influenceDimmed = isDarkModeOn ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.18)';
 
     return relations.map(e => {
       const state = view.edgeStates.get(e.id) || { isDimmed: false, isHighlighted: false };
@@ -132,11 +131,7 @@ class GraphToVisAdapter {
       const isMaster = e.type === 'master';
       const fromNode = this._db.getEntity(e.from);
       const toNode = this._db.getEntity(e.to);
-
-      const baseColor = isMaster ? masterNormal : influenceNormal;
-      const activeColor = isMaster ? masterHighlight : influenceHighlight;
-      const inactiveColor = isMaster ? masterDimmed : influenceDimmed;
-      const resolvedColor = isDimmed ? inactiveColor : (isEdgeHighlighted ? activeColor : baseColor);
+      const visual = EdgeStyle.edgeVisual({ isMaster, isDimmed, isHighlighted: isEdgeHighlighted, isDark: isDarkModeOn });
 
       return {
         id: e.id,
@@ -145,17 +140,17 @@ class GraphToVisAdapter {
         arrows: {
           to: {
             enabled: true,
-            scaleFactor: isEdgeHighlighted ? 1.0 : 0.8
+            scaleFactor: visual.arrowScale
           }
         },
         color: {
-          color: resolvedColor,
-          highlight: activeColor,
-          hover: activeColor,
-          opacity: isDimmed ? 0.20 : 1.0
+          color: visual.color,
+          highlight: visual.highlightColor,
+          hover: visual.highlightColor,
+          opacity: visual.opacity
         },
-        width: isEdgeHighlighted ? (isMaster ? 3.5 : 2.8) : (isMaster ? 2.4 : 1.6),
-        dashes: isMaster ? false : [6, 6],
+        width: visual.width,
+        dashes: visual.dash || false,
         smooth: layoutType === 'geo' ? {
           type: 'curvedCW',
           roundness: 0.18
@@ -164,7 +159,7 @@ class GraphToVisAdapter {
           forceDirection: forceDir,
           roundness: 0.4
         }),
-        title: (isMaster ? 'Hoca – Öğrenci [Düz Altın]' : 'Entelektüel Etki [Kesikli Mavi]') + ` (${e.label}): ` + (fromNode ? fromNode.name : e.from) + ' ➔ ' + (toNode ? toNode.name : e.to)
+        title: EdgeStyle.edgeTitle(e, fromNode ? fromNode.name : e.from, toNode ? toNode.name : e.to)
       };
     });
   }
