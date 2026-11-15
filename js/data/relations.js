@@ -92,8 +92,8 @@ const RAW_RELATIONS = Object.freeze([
   {
     "from": "zenon_kibris",
     "to": "hrisippos",
-    "type": "master",
-    "label": "Öğretmen-Öğrenci"
+    "type": "influence",
+    "label": "Eski Stoa Kurucu Mirası"
   },
   {
     "from": "hrisippos",
@@ -234,10 +234,10 @@ const RAW_RELATIONS = Object.freeze([
     "label": "Siyaset & Akılcılık Mirası"
   },
   {
-    "from": "ibnhaldun",
-    "to": "machiavelli",
+    "from": "gazali",
+    "to": "tusi",
     "type": "influence",
-    "label": "Tarihsel & Siyasal Realizm"
+    "label": "Tehafüt & Kelam Tartışması"
   },
   {
     "from": "aristoteles",
@@ -357,7 +357,7 @@ const RAW_RELATIONS = Object.freeze([
     "from": "hume",
     "to": "kant",
     "type": "influence",
-    "label": "Sentetik Apriori Sentezi"
+    "label": "Sentetik A Priori Sentezi"
   },
   {
     "from": "rousseau",
@@ -374,8 +374,8 @@ const RAW_RELATIONS = Object.freeze([
   {
     "from": "fichte",
     "to": "schelling",
-    "type": "master",
-    "label": "Öğretmen-Öğrenci & Doğa İdealizmi"
+    "type": "influence",
+    "label": "Mutlak Ben & Alman İdealizmi"
   },
   {
     "from": "schelling",
@@ -820,6 +820,138 @@ const RAW_RELATIONS = Object.freeze([
     "to": "canguilhem",
     "type": "influence",
     "label": "Organizma ve Normativite"
+  },
+  {
+    "from": "zenon_elea",
+    "to": "leukippos",
+    "type": "influence",
+    "label": "Bölünebilirlik Paradokslarına Yanıt"
+  },
+  {
+    "from": "herakleitos",
+    "to": "platon",
+    "type": "influence",
+    "label": "Oluş ve Duyulur Dünya"
+  },
+  {
+    "from": "herakleitos",
+    "to": "zenon_kibris",
+    "type": "influence",
+    "label": "Evrensel Logos & Kozmik Ateş"
+  },
+  {
+    "from": "aristippos",
+    "to": "epikuros",
+    "type": "influence",
+    "label": "Haz Etiği Geleneği"
+  },
+  {
+    "from": "platon",
+    "to": "augustinus",
+    "type": "influence",
+    "label": "Hristiyan Platonculuğu"
+  },
+  {
+    "from": "descartes",
+    "to": "locke",
+    "type": "influence",
+    "label": "Doğuştan Fikirler Eleştirisi"
+  },
+  {
+    "from": "locke",
+    "to": "leibniz",
+    "type": "influence",
+    "label": "İnsan Anlığı Tartışması"
+  },
+  {
+    "from": "descartes",
+    "to": "husserl",
+    "type": "influence",
+    "label": "Kartezyen Meditasyonlar & Epokhe"
+  },
+  {
+    "from": "kant",
+    "to": "husserl",
+    "type": "influence",
+    "label": "Transandantal Fenomenoloji"
+  },
+  {
+    "from": "descartes",
+    "to": "merleauponty",
+    "type": "influence",
+    "label": "Kartezyen Düalizm Eleştirisi"
+  },
+  {
+    "from": "marx",
+    "to": "sartre",
+    "type": "influence",
+    "label": "Diyalektik Akıl & Tarihsel Materyalizm"
+  },
+  {
+    "from": "marx",
+    "to": "fanon",
+    "type": "influence",
+    "label": "Sömürgecilik & Sınıf Analizi"
+  },
+  {
+    "from": "marx",
+    "to": "foucault",
+    "type": "influence",
+    "label": "İktidar & Üretim İlişkileri"
+  },
+  {
+    "from": "marx",
+    "to": "deleuze",
+    "type": "influence",
+    "label": "Kapitalizm ve Şizofreni"
+  },
+  {
+    "from": "marx",
+    "to": "popper",
+    "type": "influence",
+    "label": "Tarihselcilik Eleştirisi"
+  },
+  {
+    "from": "nietzsche",
+    "to": "freud",
+    "type": "influence",
+    "label": "Dürtüler & Bastırma"
+  },
+  {
+    "from": "freud",
+    "to": "fanon",
+    "type": "influence",
+    "label": "Psikanaliz & Sömürgeci Yabancılaşma"
+  },
+  {
+    "from": "freud",
+    "to": "foucault",
+    "type": "influence",
+    "label": "Psikanaliz, Delilik & Cinsellik"
+  },
+  {
+    "from": "freud",
+    "to": "derrida",
+    "type": "influence",
+    "label": "Bilinçdışı İz & Yapısöküm"
+  },
+  {
+    "from": "freud",
+    "to": "deleuze",
+    "type": "influence",
+    "label": "Anti-Ödipus & Arzu Üretimi"
+  },
+  {
+    "from": "carnap",
+    "to": "popper",
+    "type": "influence",
+    "label": "Doğrulanabilirlik vs. Yanlışlanabilirlik"
+  },
+  {
+    "from": "heidegger",
+    "to": "foucault",
+    "type": "influence",
+    "label": "Ontoloji & Episteme Tarihselliği"
   }
 ]);
 

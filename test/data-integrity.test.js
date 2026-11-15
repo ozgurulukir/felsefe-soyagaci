@@ -155,3 +155,41 @@ test('pathfinder varsayılanları (sokrates, nietzsche) veri setinde mevcut', ()
   assert.ok(entityIds.has('sokrates'), 'pathfinder varsayılanı eksik: sokrates');
   assert.ok(entityIds.has('nietzsche'), 'pathfinder varsayılanı eksik: nietzsche');
 });
+
+function parseLifespan(dates) {
+  const m = dates.match(/^(MÖ |MS )?(\d+)\s*–\s*(MÖ |MS )?(\d+)$/);
+  if (!m) return null;
+  const startBC = m[1] === 'MÖ ';
+  const endBC = m[3] === 'MÖ ' || (!m[3] && startBC);
+  const birth = startBC ? -Number(m[2]) : Number(m[2]);
+  const death = endBC ? -Number(m[4]) : Number(m[4]);
+  return { birth, death };
+}
+
+test('entities: tüm dates alanları standart formatta ve kronolojik (doğum < ölüm)', () => {
+  for (const e of entities) {
+    const span = parseLifespan(e.dates);
+    assert.ok(span, `geçersiz tarih formatı: ${e.id} (${e.dates})`);
+    const age = span.death - span.birth;
+    assert.ok(age >= 20 && age <= 105, `olağandışı yaşam süresi: ${e.id} (${e.dates} -> ${age} yıl)`);
+  }
+});
+
+test('relations: master ilişkilerinde hoca öğrenciden yaşça büyük ve öğrencinin gençliğinde hayatta', () => {
+  for (const rel of relations) {
+    if (rel.type !== 'master') continue;
+    const u = parseLifespan(RAW_ENTITIES[rel.from].dates);
+    const v = parseLifespan(RAW_ENTITIES[rel.to].dates);
+    assert.ok(u.birth < v.birth, `master yaş sırası hatası: ${rel.from} -> ${rel.to}`);
+    assert.ok(u.death - v.birth >= 20, `master yaşam örtüşmesi yetersiz: ${rel.from} -> ${rel.to}`);
+  }
+});
+
+test('index.html: başlangıç istatistik sayaçları veri setiyle birebir uyumlu', () => {
+  const fs = require('node:fs');
+  const html = fs.readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
+  assert.ok(html.includes(`${entities.length} Düşünür • ${relations.length} Bağlantı`),
+    `header-stats-text güncel değil (${entities.length} Düşünür • ${relations.length} Bağlantı bekleniyor)`);
+  assert.ok(html.includes(`<span id="count-all">${entities.length}</span>`),
+    `count-all güncel değil (${entities.length} bekleniyor)`);
+});

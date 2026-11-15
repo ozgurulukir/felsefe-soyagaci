@@ -75,9 +75,9 @@ const PhilosophyGeo = (function () {
 
     // 19. ve 20. Yüzyıl
     mill: [51.50, -0.12], // Londra
-    brentano: [50.65, 13.16], // Marienberg
+    brentano: [50.23, 7.59], // Marienberg (Boppard)
     husserl: [49.47, 17.11], // Prossnitz
-    heidegger: [47.99, 9.03], // Messkirch
+    heidegger: [47.99, 9.11], // Messkirch
     sartre: [48.85, 2.35], // Paris
     beauvoir: [48.85, 2.35], // Paris
     camus: [36.68, 7.75], // Mondovi (Drean, Cezayir)
@@ -93,7 +93,7 @@ const PhilosophyGeo = (function () {
     gadamer: [50.81, 8.77], // Marburg
     arendt: [52.37, 9.73], // Hannover
     merleauponty: [45.94, -0.96], // Rochefort-sur-Mer
-    fanon: [36.75, 3.05], // Cezayir / Martinik
+    fanon: [36.47, 2.83], // Blida (Cezayir) / Martinik
     canguilhem: [43.31, 1.95] // Castelnaudary
   });
 

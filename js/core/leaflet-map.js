@@ -2,7 +2,7 @@
  * =========================================================================
  * FELSEFE SOYAĞACI — DÜNYA HARİTASI (LEAFLET.JS ENTEGRASYONU)
  * =========================================================================
- * Gerçek dünya haritası üzerinde 79 düşünür ve 136 fikri bağlantının
+ * Gerçek dünya haritası üzerinde 79 düşünür ve 159 fikri bağlantının
  * kavisli jeodezik yaylarla (flight-path arcs) interaktif görselleştirmesi.
  */
 

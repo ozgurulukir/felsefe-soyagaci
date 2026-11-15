@@ -21,7 +21,7 @@ const RAW_ENTITIES = Object.freeze({
       "Geometri & Astronomi"
     ],
     "works": [
-      "Doğa Üzerine (Fragmanlar)"
+      "Yazılı eseri günümüze ulaşmamıştır (Aristoteles & Doksoğrafi aktarımları)"
     ]
   },
   "anaksimandros": {
@@ -160,7 +160,8 @@ const RAW_ENTITIES = Object.freeze({
       "Ölçülü Neşe (Euthymia)"
     ],
     "works": [
-      "Büyük Evren Düzeni (Fragmanlar)"
+      "Küçük Evren Düzeni (Mikros Diakosmos - Fragmanlar)",
+      "Dinginlik Üzerine (Peri Euthymies)"
     ]
   },
   "sokrates": {
@@ -214,7 +215,7 @@ const RAW_ENTITIES = Object.freeze({
     "dates": "MÖ 384 – 322",
     "era": "antik",
     "eraName": "Klasik Yunan Felsefesi",
-    "school": "Peripatik Okul (Lykeion)",
+    "school": "Peripatetik Okul (Lykeion)",
     "city": "Stageira / Atina",
     "quote": "Platon'u severim ama hakikati daha çok severim. İnsan doğası gereği bilmek ister.",
     "summary": "İlk öğretmen (Muallim-i Evvel). Mantığın kurucusu, doğa bilimlerinin, metafiziğin, etiğin ve siyasetin sistemleştiricisidir. Lykeion'u (Lise) kurmuştur.",
@@ -240,14 +241,14 @@ const RAW_ENTITIES = Object.freeze({
     "dates": "MÖ 371 – 287",
     "era": "antik",
     "eraName": "Klasik / Erken Helenistik",
-    "school": "Peripatik Okul",
+    "school": "Peripatetik Okul",
     "city": "Midilli (Lesbos) / Atina",
     "quote": "Zaman, insanın harcayabileceği en değerli ve telafisi olmayan şeydir.",
     "summary": "Aristoteles'in Lykeion'daki halefi ve en yakın öğrencisidir. Botanik biliminin kurucusu kabul edilir, ahlaki karakter tipleri üzerine önemli eserler vermiştir.",
     "concepts": [
       "Botanik ve Doğa Tarihi",
       "Karakter Analizleri",
-      "Peripatik Gözlem"
+      "Peripatetik Gözlem"
     ],
     "works": [
       "Karakterler",
@@ -323,7 +324,7 @@ const RAW_ENTITIES = Object.freeze({
     "summary": "Diyojen'in öğrencisi. Servetini halka dağıtarak gezgin bir filozof olarak yaşamış; Stoacılığın kurucusu Kıbrıslı Zenon'un hocalığını yapmıştır.",
     "concepts": [
       "Kinik Erdem",
-      "Asketi Yaşam",
+      "Asketik Yaşam",
       "Stoa Öncesi Köprü"
     ],
     "works": [
@@ -426,7 +427,7 @@ const RAW_ENTITIES = Object.freeze({
     "concepts": [
       "Kontrol İkiliği",
       "İçsel Özgürlük",
-      "Amor Fati (Kaderini Sev)",
+      "Prohairesis (Ahlaki İrade & Seçim)",
       "Erdemli Karakter"
     ],
     "works": [
@@ -556,7 +557,7 @@ const RAW_ENTITIES = Object.freeze({
   "augustinus": {
     "id": "augustinus",
     "name": "Augustinus",
-    "dates": "354 – 430",
+    "dates": "MS 354 – 430",
     "era": "ortacag",
     "eraName": "Orta Çağ Felsefesi",
     "school": "Patristik Felsefe / Hristiyan Platonculuğu",
@@ -614,7 +615,7 @@ const RAW_ENTITIES = Object.freeze({
     ],
     "works": [
       "Erdemli Şehir Halkının Görüşleri",
-      "İlimlerin Sayımı (İhsa'ül-Ulum)",
+      "İlimlerin Sayımı (İhsâü'l-Ulûm)",
       "Mutluluğun Kazanılması"
     ]
   },
@@ -653,7 +654,7 @@ const RAW_ENTITIES = Object.freeze({
     "summary": "İslam dünyasında felsefi akılcılığı derin bir metodik şüpheyle eleştirmiş, metafizikçilerin 20 meselesini çürüttüğü eseriyle felsefe tarihinde çığır açmıştır.",
     "concepts": [
       "Tehafüt Eleştirisi",
-      "Nedensellik Eleştirisi (İlk Occasionalism)",
+      "Nedensellik Eleştirisi (Vesilecilik)",
       "Manevi Sezgi (Zevk)",
       "Metodik Şüphe"
     ],
@@ -715,7 +716,7 @@ const RAW_ENTITIES = Object.freeze({
     "eraName": "Orta Çağ Skolastiği",
     "school": "Tomizm / Hristiyan Aristotelesçiliği",
     "city": "Roccasecca / Paris / Napoli",
-    "quote": "Zarafet doğayı yok etmez, onu mükemmelleştirir. Akıl imanı destekler.",
+    "quote": "İlahi lütuf doğayı yok etmez, onu mükemmelleştirir. Akıl imanı destekler.",
     "summary": "Katolik Kilisesi'nin baş felsefecisi (Doctor Angelicus). Aristoteles felsefesi ile Hristiyan inancını muazzam bir mantıksal mimariyle (Summa Theologiae) birleştirmiştir.",
     "concepts": [
       "Quinque Viae (Tanrı'nın Beş Kanıtı)",
@@ -737,7 +738,7 @@ const RAW_ENTITIES = Object.freeze({
     "school": "Yeni İbn Sînâcılık / Kelam & Astronomi",
     "city": "Tus, Horasan / Meraga Rasathanesi",
     "quote": "İlim, aklın gıdasıdır; adalet ise toplumun ruhudur.",
-    "summary": "İbn Sînâ felsefesini Gazzâlî ve Fahreddin Râzî eleştirilerine karşı savunan en büyük şarihtir. Meraga Rasathanesi'ni kurmuş, Ömer Hayyam'ın matematiksel mirasını geliştirerek geliştirdiği 'Tûsî Çifti' ile Kopernik devrimine ilham vermiştir.",
+    "summary": "İbn Sînâ felsefesini Gazzâlî ve Fahreddin Râzî eleştirilerine karşı savunan en büyük şarihtir. Meraga Rasathanesi'ni kurmuş, Ömer Hayyam'ın matematiksel mirasını sürdürerek geliştirdiği 'Tûsî Çifti' ile Kopernik devrimine ilham vermiştir.",
     "concepts": [
       "İbn Sînâ Felsefesinin Savunusu",
       "Ahlak-ı Nâsırî (Pratik Felsefe)",
@@ -1012,7 +1013,7 @@ const RAW_ENTITIES = Object.freeze({
     "school": "Transandantal İdealizm",
     "city": "Königsberg, Prusya",
     "quote": "İki şey zihnimi doldurur: Üzerimdeki yıldızlı gökyüzü ve içimdeki ahlak yasası.",
-    "summary": "Felsefe tarihinin dönüm noktasıdır. Rasyonalizm ile Empirisizmi sentezleyerek 'Kopernik Devrimi' yapmış; aklın sınırlarını çizip ödev ahlakını (Kategorik Buyruk) kurmuştur.",
+    "summary": "Felsefe tarihinin dönüm noktasıdır. Rasyonalizm ile Empirizmi sentezleyerek 'Kopernik Devrimi' yapmış; aklın sınırlarını çizip ödev ahlakını (Kategorik Buyruk) kurmuştur.",
     "concepts": [
       "Transandantal İdealizm",
       "Fenomen ve Numen (Kendinde Şey)",
@@ -1078,7 +1079,7 @@ const RAW_ENTITIES = Object.freeze({
     "quote": "Akla uygun olan gerçektir, gerçek olan da akla uygundur. Hakikat bütündür.",
     "summary": "Tinin (Geist) tarihte kendini gerçekleştirmesini açıklayan devasa bir diyalektik sistem kurdu. Efendi-Köle diyalektiği ve tarih felsefesi modern düşüncenin mihveridir.",
     "concepts": [
-      "Diyalektik Yöntem (Tez-Antitez-Sentez)",
+      "Diyalektik Yöntem & Aufhebung (İçererek Aşma)",
       "Geist (Dünya Tini)",
       "Efendi-Köle Diyalektiği",
       "Tarihin Sonu ve Özgürlüğün Gelişimi"
@@ -1148,7 +1149,7 @@ const RAW_ENTITIES = Object.freeze({
       "Varoluşsal Kaygı (Angst)",
       "İnanç Sıçraması",
       "Üç Yaşam Evresi (Estetik, Etik, Dini)",
-      "Tekil Birey (Der Enkelte)"
+      "Tekil Birey (Den Enkelte)"
     ],
     "works": [
       "Korku ve Titreme",
@@ -1191,7 +1192,7 @@ const RAW_ENTITIES = Object.freeze({
     "concepts": [
       "Güç İstenci (Wille zur Macht)",
       "Üstinsan (Übermensch)",
-      "Bengi Dönüş (Amor Fati)",
+      "Bengi Dönüş & Amor Fati",
       "Efendi ve Köle Ahlakı",
       "Nihilizm"
     ],
@@ -1232,11 +1233,11 @@ const RAW_ENTITIES = Object.freeze({
     "era": "20yy",
     "eraName": "20. Yüzyıl & Çağdaş Felsefe",
     "school": "Yönelimsellik (Intentionality)",
-    "city": "Marienberg / Viyana / Zürih",
+    "city": "Marienberg (Boppard) / Viyana / Zürih",
     "quote": "Her zihinsel fenomen, nesnesine yönelmiş olmakla karakterize edilir.",
-    "summary": "Ortaçağ kavramı olan 'yönelimsellik'i (nesneye yönelme) modern psikoloji ve felsefeye kazandırarak Fenomenoloji akımının kapısını araladı.",
+    "summary": "Orta Çağ kavramı olan 'yönelimsellik'i (nesneye yönelme) modern psikoloji ve felsefeye kazandırarak Fenomenoloji akımının kapısını araladı.",
     "concepts": [
-      "Yönelimsellik (İntentionality)",
+      "Yönelimsellik (Intentionality)",
       "Bilinç Edimleri",
       "Betimsel Psikoloji"
     ],
@@ -1457,7 +1458,7 @@ const RAW_ENTITIES = Object.freeze({
       "Panoptikon (Gözetim Toplumu)",
       "Bilgi/İktidar Sarmalı",
       "Söylem ve Episteme",
-      "Deliliğin Arkeolojisi"
+      "Bilginin Arkeolojisi"
     ],
     "works": [
       "Hapishanenin Doğuşu",
@@ -1497,7 +1498,7 @@ const RAW_ENTITIES = Object.freeze({
     "school": "Erken Atomculuk",
     "city": "Miletos / Abdera",
     "quote": "Hiçbir şey rastlantı sonucu meydana gelmez; her şey bir nedenden ve zorunluluktan doğar.",
-    "summary": "Atomcu felsefenin ilk kurucusudur. Parmenides ve Zeno'nun hareketi reddeden monizmine karşı 'bölünemez parçacıklar' (atomlar) ve 'boşluk' kavramını ilk kez ortaya atarak materyalizmin temelini atmıştır.",
+    "summary": "Atomcu felsefenin ilk kurucusudur. Parmenides ve Zenon'un hareketi reddeden monizmine karşı 'bölünemez parçacıklar' (atomlar) ve 'boşluk' kavramını ilk kez ortaya atarak materyalizmin temelini atmıştır.",
     "concepts": [
       "Atom (Bölünemez)",
       "Boşluk (Kenon)",
@@ -1626,7 +1627,7 @@ const RAW_ENTITIES = Object.freeze({
     "era": "20yy",
     "eraName": "20. Yüzyıl & Post-Kolonyal Düşünce",
     "school": "Post-Kolonyal Teori & Varoluşçu Hümanizm",
-    "city": "Fort-de-France, Martinik / Cezayir",
+    "city": "Fort-de-France, Martinik / Blida, Cezayir",
     "quote": "Ey bedenim, beni her zaman soru soran bir insan yap!",
     "summary": "Psikiyatrist ve devrimci düşünür. Hegelci tanınma diyalektiğini, psikanalizi ve Sartre varoluşçuluğunu kullanarak sömürgeciliğin ezilen halklar üzerindeki ruhsal ve siyasal yıkımını çözümlemiştir.",
     "concepts": [
