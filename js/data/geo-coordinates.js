@@ -97,11 +97,11 @@ const PhilosophyGeo = (function () {
     canguilhem: [43.31, 1.95] // Castelnaudary
   });
 
-  // Harita Projeksiyon Parametreleri (Avrasya / Akdeniz Odaklı)
+  // Harita Projeksiyon Parametreleri (Avrasya / Akdeniz Odaklı, Orantılı Mercator)
   const PROJ_CENTER_LNG = 18;
   const PROJ_CENTER_LAT = 42;
-  const PROJ_SCALE_X = 52;
-  const PROJ_SCALE_Y = 62;
+  const PROJ_SCALE_X = 44;
+  const PROJ_SCALE_Y = 44;
 
   function projectRaw(lat, lng) {
     const x = (lng - PROJ_CENTER_LNG) * PROJ_SCALE_X;
@@ -113,8 +113,47 @@ const PhilosophyGeo = (function () {
     return { x: Math.round(x), y: Math.round(y) };
   }
 
-  // Aynı şehirdeki filozofların üst üste binmesini önleyen kümeleme (radial jittering)
+  // Aynı şehirdeki ve yakın kentlerdeki filozof kutularının (~152x56px) üst üste
+  // binmesini önleyen eliptik kümeleme + deterministik kutu ayrıştırma (collision resolution)
   let _projectedPositionsCache = null;
+  const MIN_BOX_W = 156;
+  const MIN_BOX_H = 58;
+
+  function resolveBoxOverlaps(items) {
+    const totalIters = 80;
+    for (let iter = 0; iter < totalIters; iter++) {
+      for (let i = 0; i < items.length; i++) {
+        for (let j = i + 1; j < items.length; j++) {
+          const a = items[i];
+          const b = items[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const ox = MIN_BOX_W - Math.abs(dx);
+          const oy = MIN_BOX_H - Math.abs(dy);
+          if (ox <= 0 || oy <= 0) continue;
+          if (ox / MIN_BOX_W < oy / MIN_BOX_H) {
+            const sign = dx === 0 ? (i % 2 === 0 ? 1 : -1) : Math.sign(dx);
+            const push = (ox / 2 + 0.5) * sign;
+            a.x -= push;
+            b.x += push;
+          } else {
+            const sign = dy === 0 ? (i % 2 === 0 ? 1 : -1) : Math.sign(dy);
+            const push = (oy / 2 + 0.5) * sign;
+            a.y -= push;
+            b.y += push;
+          }
+        }
+      }
+      // İlk 45 adımda düğümleri kendi tarihsel kent merkezlerine (base) hafifçe çek
+      if (iter < 45) {
+        const pull = 0.06 * (1 - iter / 45);
+        for (const it of items) {
+          it.x += (it.baseX - it.x) * pull;
+          it.y += (it.baseY - it.y) * pull;
+        }
+      }
+    }
+  }
 
   function computeAllPositions() {
     if (_projectedPositionsCache) return _projectedPositionsCache;
@@ -126,47 +165,34 @@ const PhilosophyGeo = (function () {
       clusters.get(key).push({ id, lat, lng });
     }
 
-    const positions = {};
-    for (const [key, list] of clusters.entries()) {
+    const items = [];
+    for (const [, list] of clusters.entries()) {
       const count = list.length;
       list.forEach((item, idx) => {
         const base = projectRaw(item.lat, item.lng);
         if (count === 1) {
-          positions[item.id] = base;
+          items.push({ id: item.id, baseX: base.x, baseY: base.y, x: base.x, y: base.y });
           return;
         }
-        // Çoklu filozoflar için dairesel takımyıldız açılımı.
-        // Kutu genişliği ~140px olduğundan yarıçaplar okunabilirliğe göre seçilir;
-        // büyük kümeler (Atina gibi) iki eş merkezli halkaya yayılır.
-        let ring, ringIdx, ringCount;
-        if (count <= 5) {
-          ring = count === 2 ? 64 : 78;
-          ringIdx = idx;
-          ringCount = count;
-        } else if (count <= 10) {
-          ring = 96;
-          ringIdx = idx;
-          ringCount = count;
-        } else {
-          const firstRing = Math.ceil(count / 2);
-          if (idx < firstRing) {
-            ring = 90;
-            ringIdx = idx;
-            ringCount = firstRing;
-          } else {
-            ring = 170;
-            ringIdx = idx - firstRing;
-            ringCount = count - firstRing;
-          }
-        }
-        // Dış halkayı yarım adım döndürerek iç halkanın boşluklarına yerleştir
-        const angle = (2 * Math.PI * ringIdx) / ringCount - Math.PI / 2
-          + (ring > 100 ? Math.PI / ringCount : 0);
-        positions[item.id] = {
-          x: Math.round(base.x + Math.cos(angle) * ring),
-          y: Math.round(base.y + Math.sin(angle) * ring)
-        };
+        const ring = count === 2 ? 0 : 1;
+        const angle = (2 * Math.PI * idx) / count - Math.PI / 2;
+        const rx = ring === 0 ? 85 : 115;
+        const ry = ring === 0 ? 34 : 52;
+        items.push({
+          id: item.id,
+          baseX: base.x,
+          baseY: base.y,
+          x: base.x + Math.cos(angle) * rx,
+          y: base.y + Math.sin(angle) * ry
+        });
       });
+    }
+
+    resolveBoxOverlaps(items);
+
+    const positions = {};
+    for (const it of items) {
+      positions[it.id] = { x: Math.round(it.x), y: Math.round(it.y) };
     }
 
     _projectedPositionsCache = positions;

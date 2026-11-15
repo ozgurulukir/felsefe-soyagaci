@@ -17,7 +17,6 @@ const GeoMode = (function () {
 
   let getLayout = null;
   let getNetwork = null;
-  let getNodesDataSet = null;
   let refreshGraphVisuals = null;
   let getNetworkOptions = null;
   let getAnimOptions = null;
@@ -25,13 +24,12 @@ const GeoMode = (function () {
 
   /**
    * app.js DOMContentLoaded başında çağrılır (SearchUi/PathfinderUi init'den sonra).
-   * @param {object} deps — plana göre: getLayout, getNetwork, getNodesDataSet
-   *   thunks + refreshGraphVisuals, getNetworkOptions, getAnimOptions, selectAndFocus
+   * @param {object} deps — getLayout, getNetwork thunks + refreshGraphVisuals,
+   *   getNetworkOptions, getAnimOptions, selectAndFocus
    */
   function init(deps) {
     getLayout = deps.getLayout;
     getNetwork = deps.getNetwork;
-    getNodesDataSet = deps.getNodesDataSet;
     refreshGraphVisuals = deps.refreshGraphVisuals;
     getNetworkOptions = deps.getNetworkOptions;
     getAnimOptions = deps.getAnimOptions;
@@ -77,18 +75,20 @@ const GeoMode = (function () {
     setGeoAtlasMode(true, 'Harita karoları yüklenemedi — yerleşik Atlas görünümüne geçildi.');
   }
 
-  // Atlas kadrajı: tüm dünyayı fit() ile sığdırmak ölçeği ~0.35'e düşürüp etiketleri
-  // okunmaz hâle getirir; bunun yerine projeksiyon merkezi (42°N, 18°E — Akdeniz çekirdeği,
-  // Math: projectRaw(42,18) = {0,0}) sabit ve okunabilir bir ölçekle gösterilir.
+  // Atlas kadrajı: tüm dünyayı fit() ile sığdırmak ölçeği ~0.25'e düşürüp etiketleri
+  // okunmaz hâle getirir; bunun yerine düşünür ağının ağırlık merkezi (~45°K, 25°D;
+  // üst yüzen bar payı düşülmüş olarak {x: 320, y: -230}) okunabilir ölçekle gösterilir.
+  const ATLAS_VIEW_CENTER = Object.freeze({ x: 320, y: -230 });
+
   function getAtlasInitialScale() {
-    return typeof window !== 'undefined' && window.innerWidth < 768 ? 0.42 : 0.62;
+    return typeof window !== 'undefined' && window.innerWidth < 768 ? 0.30 : 0.43;
   }
 
   function frameAtlasView(animate = true) {
     const network = getNetwork();
     if (!network) return;
     network.moveTo({
-      position: { x: 0, y: 0 },
+      position: ATLAS_VIEW_CENTER,
       scale: getAtlasInitialScale(),
       animation: animate ? getAnimOptions(700) : false
     });
@@ -111,22 +111,19 @@ const GeoMode = (function () {
       setTimeout(() => lm.fitAll(), 150);
     } else if (getNetwork()) {
       const network = getNetwork();
-      const nodesDataSet = getNodesDataSet();
+      // Karo modunda gizli kalan (#network-container.hidden) tuval 0x0 boyutuna
+      // düştüğünden, görünür olur olmaz boyutları senkron olarak geri yüklenir.
+      if (typeof network.setSize === 'function') {
+        network.setSize('100%', '100%');
+      }
       // Atlas motoru: hiyerarşi/fizik kapalı geo seçenekleri uygulanmadan dataset güncellemesi
       // hiyerarşi düzen motorunu tetikler ve sabit harita konumlarını ezer
       network.setOptions(getNetworkOptions('geo'));
       refreshGraphVisuals();
-      // vis-network, update() ile gelen x/y'yi yalnızca düğüm OLUŞTURULURKEN uygular;
-      // mevcut düğümler (ör. UD'den geçişte) harita projeksiyonuna açıkça taşınmalı
-      if (nodesDataSet && window.PhilosophyGeo) {
-        nodesDataSet.forEach(node => {
-          const pos = window.PhilosophyGeo.getNodePosition(node.id);
-          network.moveNode(node.id, pos.x, pos.y);
-        });
+      frameAtlasView(false);
+      if (typeof network.redraw === 'function') {
+        network.redraw();
       }
-      setTimeout(() => {
-        frameAtlasView();
-      }, 200);
     }
   }
 

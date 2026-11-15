@@ -16,6 +16,7 @@ globalThis.PhilosophySchema = PhilosophySchema;
 const { RAW_ENTITIES } = require('../js/data/entities.js');
 const { RAW_RELATIONS } = require('../js/data/relations.js');
 const { PhilosophyGeo } = require('../js/data/geo-coordinates.js');
+const { PhilosophyAtlas } = require('../js/core/atlas-engine.js');
 
 // RAW_ENTITIES id anahtarlı nesne; relations düz dizi
 const entities = Object.values(RAW_ENTITIES);
@@ -100,6 +101,30 @@ test('coords: her id için geocode jitter türetilebiliyor (getPhilosopherLatLng
   for (const id of entityIds) {
     const ll = PhilosophyGeo.getPhilosopherLatLng(id);
     assert.ok(Array.isArray(ll) && ll.length === 2, `getPhilosopherLatLng null/bozuk: ${id}`);
+  }
+});
+
+test('coords: Atlas görünümünde (getNodePosition) hiçbir düşünür kutusu birbiriyle çakışmaz', () => {
+  const ids = [...entityIds];
+  const positions = ids.map(id => ({ id, ...PhilosophyGeo.getNodePosition(id) }));
+  const overlaps = [];
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const a = positions[i];
+      const b = positions[j];
+      if (Math.abs(a.x - b.x) < 148 && Math.abs(a.y - b.y) < 52) {
+        overlaps.push(`${a.id} <-> ${b.id}`);
+      }
+    }
+  }
+  assert.deepStrictEqual(overlaps, [], `Atlas kutu çakışması: ${overlaps.join(', ')}`);
+});
+
+test('coords: tüm düşünür koordinatları Atlas harita çerçevesi (BOUNDS) içinde kalır', () => {
+  const { minLat, maxLat, minLng, maxLng } = PhilosophyAtlas.BOUNDS;
+  for (const [id, [lat, lng]] of Object.entries(coords)) {
+    assert.ok(lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng,
+      `Atlas çerçevesi dışında kalan filozof: ${id} (${lat}, ${lng})`);
   }
 });
 

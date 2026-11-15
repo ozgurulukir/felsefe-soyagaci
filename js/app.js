@@ -203,6 +203,10 @@ function handleInitialHashRoute() {
   const hashId = window.location.hash.replace(/^#/, '').trim();
   if (hashId && graphDb.getEntity(hashId)) {
     selectAndFocus(hashId);
+  } else if (currentLayout === 'geo') {
+    if (!GeoMode.isLeafletReady()) {
+      GeoMode.frameAtlasView(false);
+    }
   } else {
     network.fit({ animation: getAnimOptions(800) });
   }
@@ -683,6 +687,9 @@ document.addEventListener('DOMContentLoaded', () => {
       GeoMode.updateModeToggle();
 
       if (network) {
+        if (typeof network.setSize === 'function') {
+          network.setSize('100%', '100%');
+        }
         network.setOptions(getNetworkOptions(currentLayout));
 
         const unfixes = [];
@@ -748,7 +755,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else if (network) {
         if (era === 'all') {
-          network.fit({ animation: getAnimOptions(500) });
+          if (currentLayout === 'geo') {
+            GeoMode.frameAtlasView();
+          } else {
+            network.fit({ animation: getAnimOptions(500) });
+          }
         } else {
           const eraIds = graphDb.getByEra(era).map(p => p.id);
           if (eraIds.length > 0) {

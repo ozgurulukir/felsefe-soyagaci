@@ -60,3 +60,61 @@ test('isLeafletReady: geo dışı düzen → false', () => {
     delete globalThis.window;
   }
 });
+
+test('activateEngine: Atlas modunda tuval boyutunu geri yükler, seçenekleri uygular ve kadrajlar', () => {
+  layout = 'geo';
+  const calls = [];
+  const fakeNetwork = {
+    setSize: (w, h) => calls.push(['setSize', w, h]),
+    setOptions: (opts) => calls.push(['setOptions', opts]),
+    moveTo: (opts) => calls.push(['moveTo', opts]),
+    redraw: () => calls.push(['redraw']),
+    moveNode: () => calls.push(['moveNode'])
+  };
+  globalThis.document = {
+    getElementById: () => null,
+    querySelector: () => ({ appendChild: () => {} })
+  };
+  globalThis.window = { innerWidth: 1440 };
+
+  GeoMode.init({
+    getLayout: () => layout,
+    getNetwork: () => fakeNetwork,
+    getNodesDataSet: () => null,
+    refreshGraphVisuals: () => calls.push(['refreshGraphVisuals']),
+    getNetworkOptions: (l) => ({ layoutType: l }),
+    getAnimOptions: (d) => ({ duration: d }),
+    selectAndFocus: () => {}
+  });
+
+  try {
+    GeoMode.setAtlasMode(true);
+    assert.strictEqual(GeoMode.isAtlasMode(), true);
+    assert.deepStrictEqual(calls.map(c => c[0]), [
+      'setSize',
+      'setOptions',
+      'refreshGraphVisuals',
+      'moveTo',
+      'redraw'
+    ]);
+    const moveToArg = calls.find(c => c[0] === 'moveTo')[1];
+    assert.strictEqual(moveToArg.scale, 0.43);
+    assert.deepStrictEqual(moveToArg.position, { x: 320, y: -230 });
+    assert.strictEqual(moveToArg.animation, false);
+  } finally {
+    layout = 'UD';
+    GeoMode.init({
+      getLayout: () => layout,
+      getNetwork: () => null,
+      getNodesDataSet: () => null,
+      refreshGraphVisuals: () => {},
+      getNetworkOptions: () => ({}),
+      getAnimOptions: () => ({}),
+      selectAndFocus: () => {}
+    });
+    GeoMode.setAtlasMode(false);
+    layout = 'geo';
+    delete globalThis.document;
+    delete globalThis.window;
+  }
+});
