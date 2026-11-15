@@ -369,8 +369,7 @@ function disableTransitionsDuring(callback) {
 
 // Tek tema uygulama yolu: toggle düğmesi ve sistem prefers-color-scheme dinleyicisi
 // aynı fan-out'u (geçiş bastırma → graf → Leaflet → dönem rozeti) buradan kullanır.
-// refreshBadge: açık çekmece varsa dönem rozetini yeni temaya göre tazele.
-function applyThemeChange(targetDark, { persist = false, refreshBadge = false } = {}) {
+function applyThemeChange(targetDark, { persist = false } = {}) {
   disableTransitionsDuring(() => Theme.apply(targetDark));
   if (persist) {
     Theme.persist(targetDark ? 'dark' : 'light');
@@ -383,7 +382,7 @@ function applyThemeChange(targetDark, { persist = false, refreshBadge = false } 
     window.LeafletMapManager.setTheme(targetDark);
   }
 
-  if (refreshBadge && currentSelectedId) {
+  if (currentSelectedId) {
     const p = graphDb.getEntity(currentSelectedId);
     if (p) {
       const badgeEl = document.getElementById('drawer-era-badge');
@@ -551,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
-      applyThemeChange(!Theme.isDark(), { persist: true, refreshBadge: true });
+      applyThemeChange(!Theme.isDark(), { persist: true });
     });
   }
 
