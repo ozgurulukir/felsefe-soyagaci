@@ -12,29 +12,23 @@
 const PathfinderUi = (function () {
 
   let graphDb = null;
-  let getNetwork = null;
   let setPathState = null;
   let closeDrawer = null;
   let refreshGraphVisuals = null;
   let showPhilosopherDetails = null;
-  let getAnimOptions = null;
-  let isLeafletReady = null;
 
   /**
    * app.js DOMContentLoaded başında çağrılır (SearchUi.init'den sonra).
-   * @param {object} deps — plana göre: graphDb, getNetwork, setPathState,
-   *   closeDrawer, refreshGraphVisuals, showPhilosopherDetails, getAnimOptions,
-   *   isLeafletReady (thunk; GeoMode hazır olduktan sonra değerlendirilir)
+   * Kamera davranışı (odak/sığdırma) Viewport modülüne (SSOT) devredilmiştir.
+   * @param {object} deps — graphDb, setPathState, closeDrawer,
+   *   refreshGraphVisuals, showPhilosopherDetails
    */
   function init(deps) {
     graphDb = deps.graphDb;
-    getNetwork = deps.getNetwork;
     setPathState = deps.setPathState;
     closeDrawer = deps.closeDrawer;
     refreshGraphVisuals = deps.refreshGraphVisuals;
     showPhilosopherDetails = deps.showPhilosopherDetails;
-    getAnimOptions = deps.getAnimOptions;
-    isLeafletReady = deps.isLeafletReady;
   }
 
   function populatePathfinderSelects() {
@@ -90,11 +84,7 @@ const PathfinderUi = (function () {
         stepBtn.classList.remove('text-amber-800', 'dark:text-amber-300');
         stepBtn.classList.add('bg-amber-400', 'text-slate-950', 'font-semibold');
         showPhilosopherDetails(nodeId, { preservePath: true });
-        if (isLeafletReady()) {
-          window.LeafletMapManager.focusNode(nodeId, graphDb);
-        } else if (getNetwork()) {
-          getNetwork().focus(nodeId, { scale: 1.15, animation: getAnimOptions(500) });
-        }
+        Viewport.focusNode(nodeId, graphDb);
       });
       resultContainer.appendChild(stepBtn);
 
@@ -106,11 +96,7 @@ const PathfinderUi = (function () {
       }
     });
 
-    if (isLeafletReady()) {
-      window.LeafletMapManager.fitPath(path);
-    } else if (getNetwork()) {
-      getNetwork().fit({ nodes: path, animation: getAnimOptions(700) });
-    }
+    Viewport.fitNodes(path);
   }
 
   return Object.freeze({ init, populatePathfinderSelects, runPathfinder });
