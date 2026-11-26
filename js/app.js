@@ -22,20 +22,14 @@ let nodesDataSet = null;
 let edgesDataSet = null;
 let currentSelectedId = null;
 let currentHighlightPath = null;
-let currentLayout = 'UD'; // 'UD', 'LR', 'free', 'geo'
+// Düzen tercihi LayoutPref'te (SSOT): URL > kayıtlı tercih > varsayılan
+let currentLayout = LayoutPref.DEFAULT_LAYOUT;
 try {
   const urlLayout = new URLSearchParams(window.location.search).get('layout');
-  if (['UD', 'LR', 'free', 'geo'].includes(urlLayout)) {
-    currentLayout = urlLayout;
-  } else {
-    const lsLayout = localStorage.getItem('felsefe-layout');
-    if (['UD', 'LR', 'free', 'geo'].includes(lsLayout)) {
-      currentLayout = lsLayout;
-    }
-  }
+  currentLayout = LayoutPref.resolve(urlLayout, LayoutPref.readStored());
 } catch (e) {
-  // URL/localStorage okunamadı (ör. gizli sekme, kota): varsayılan 'UD' düzeniyle devam et
-  console.warn('[App] Varsayılan düzen tercihi okunamadı; "UD" ile devam ediliyor.', e);
+  // URL/localStorage okunamadı (ör. gizli sekme, kota): varsayılan düzenle devam et
+  console.warn('[App] Varsayılan düzen tercihi okunamadı; varsayılanla devam ediliyor.', e);
 }
 let currentEraFilter = 'all';
 
@@ -64,11 +58,7 @@ function updateDynamicCounts() {
   }
 }
 
-// Ağ düzeni seçenekleri LayoutOptions modülünde (SSOT), burada pencere
-// üzerinden erişilir; sadece çağrı noktaları kalır.
-function getNetworkOptions(layoutType) {
-  return window.LayoutOptions.getNetworkOptions(layoutType);
-}
+// Ağ düzeni seçenekleri LayoutOptions modülünde (SSOT)
 
 // Pozisyonları sıfırlamadan sadece düğüm ve kenar stillerini günceller
 function refreshGraphVisuals() {
@@ -135,7 +125,7 @@ function initNetwork() {
     edges: edgesDataSet
   };
 
-  network = new vis.Network(container, data, getNetworkOptions(currentLayout));
+  network = new vis.Network(container, data, window.LayoutOptions.getNetworkOptions(currentLayout));
 
   network.on('beforeDrawing', function(ctx) {
     if (currentLayout === 'geo' && window.PhilosophyAtlas && window.PhilosophyGeo) {
@@ -292,15 +282,8 @@ function selectAndFocus(id) {
   showPhilosopherDetails(id);
   refreshGraphVisuals();
 
-  if (GeoMode.isLeafletReady()) {
-    window.LeafletMapManager.focusNode(id, graphDb);
-  } else if (network) {
-    network.selectNodes([id]);
-    network.focus(id, {
-      scale: 1.15,
-      animation: getAnimOptions(600)
-    });
-  }
+  // Kamera davranışı Viewport modülünde (SSOT): motor seçimi + odak oranı
+  Viewport.focusNode(id, graphDb);
 }
 
 function closeDrawer() {
@@ -375,24 +358,29 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // UI namespace init — arama → yol bulucu → geo mod (modül yüklenme sırası)
+  // UI namespace init — arama → yol bulucu → geo mod → kamera (modül yüklenme sırası)
   SearchUi.init({ graphDb, selectAndFocus });
+  Viewport.init({
+    getNetwork: () => network,
+    getAnimOptions,
+    isLeafletReady: () => GeoMode.isLeafletReady(),
+    getLeafletManager: () => window.LeafletMapManager,
+    isGeoLayout: () => currentLayout === 'geo',
+    frameAtlas: () => GeoMode.frameAtlasView()
+  });
   PathfinderUi.init({
     graphDb,
-    getNetwork: () => network,
     setPathState: (path) => { currentSelectedId = null; currentHighlightPath = path; },
     closeDrawer,
     refreshGraphVisuals,
-    showPhilosopherDetails,
-    getAnimOptions,
-    isLeafletReady: () => GeoMode.isLeafletReady()
+    showPhilosopherDetails
   });
   GeoMode.init({
     getLayout: () => currentLayout,
     getNetwork: () => network,
     getNodesDataSet: () => nodesDataSet,
     refreshGraphVisuals,
-    getNetworkOptions,
+    getNetworkOptions: window.LayoutOptions.getNetworkOptions,
     getAnimOptions,
     selectAndFocus
   });
@@ -479,31 +467,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('zoom-in-btn').addEventListener('click', () => {
-    if (GeoMode.isLeafletReady()) {
-      window.LeafletMapManager.zoomIn();
-    } else if (network) {
-      const currentScale = network.getScale();
-      network.moveTo({ scale: currentScale * 1.3, animation: getAnimOptions(300) });
-    }
+    Viewport.zoomIn();
   });
 
   document.getElementById('zoom-out-btn').addEventListener('click', () => {
-    if (GeoMode.isLeafletReady()) {
-      window.LeafletMapManager.zoomOut();
-    } else if (network) {
-      const currentScale = network.getScale();
-      network.moveTo({ scale: currentScale * 0.7, animation: getAnimOptions(300) });
-    }
+    Viewport.zoomOut();
   });
 
   document.getElementById('fit-btn').addEventListener('click', () => {
-    if (GeoMode.isLeafletReady()) {
-      window.LeafletMapManager.fitAll();
-    } else if (network && currentLayout === 'geo') {
-      GeoMode.frameAtlasView();
-    } else if (network) {
-      network.fit({ animation: getAnimOptions(600) });
-    }
+    Viewport.fitAll();
   });
 
   // Geo modda motor geçişi: karo harita ↔ yerleşik Atlas (vis-canvas)
@@ -626,16 +598,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function switchLayout(layout, shouldPersist = true) {
     currentLayout = layout;
     if (shouldPersist) {
-      try { localStorage.setItem('felsefe-layout', layout); } catch (e) {
-        // Kalıcılık yok: düzen bu oturumda uygulanır ama sayfa yenilenince unutulur
-        console.warn('[App] Düzen tercihi kaydedilemedi; seçim yalnızca bu oturum için geçerli.', e);
-      }
+      // Kalıcılık yoksa LayoutPref sessizce geçer: düzen bu oturumda uygulanır
+      LayoutPref.persist(layout);
     }
 
-    if (layout === 'UD') layoutLabel.textContent = 'Dikey Ağaç';
-    else if (layout === 'LR') layoutLabel.textContent = 'Yatay Ağaç';
-    else if (layout === 'geo') layoutLabel.textContent = 'Dünya Haritası';
-    else layoutLabel.textContent = 'Serbest Ağ';
+    layoutLabel.textContent = LayoutPref.label(layout);
 
     layoutChoiceBtns.forEach(b => {
       const icon = b.querySelector('.layout-active-icon');
@@ -714,28 +681,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       refreshGraphVisuals();
 
-      if (GeoMode.isLeafletReady()) {
-        if (era === 'all') {
-          window.LeafletMapManager.fitAll();
-        } else {
-          const eraIds = graphDb.getByEra(era).map(p => p.id);
-          if (eraIds.length > 0) {
-            window.LeafletMapManager.fitPath(eraIds);
-          }
-        }
-      } else if (network) {
-        if (era === 'all') {
-          if (currentLayout === 'geo') {
-            GeoMode.frameAtlasView();
-          } else {
-            network.fit({ animation: getAnimOptions(500) });
-          }
-        } else {
-          const eraIds = graphDb.getByEra(era).map(p => p.id);
-          if (eraIds.length > 0) {
-            network.fit({ nodes: eraIds, animation: getAnimOptions(600) });
-          }
-        }
+      // Kamera: aktif motor Viewport'ta tek yerden seçilir
+      if (era === 'all') {
+        Viewport.fitAll();
+      } else {
+        Viewport.fitNodes(graphDb.getByEra(era).map(p => p.id));
       }
     });
   });
