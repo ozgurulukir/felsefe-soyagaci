@@ -160,7 +160,8 @@ const LeafletMapManager = (function () {
 
       polyline.bindTooltip(
         `<b>${HtmlEscape.escape(pFrom.name)}</b> ➔ <b>${HtmlEscape.escape(pTo.name)}</b><br>` +
-        `<span style="color: ${isMaster ? '#fbbf24' : '#38bdf8'}; font-weight: 600;">` +
+        // İşaret rengi EdgeStyle paletinden (SSOT): highlight tonu, iki motorda da aynı
+        `<span style="color: ${EdgeStyle.palette(isDark)[isMaster ? 'masterHighlight' : 'influenceHighlight']}; font-weight: 600;">` +
         `${isMaster ? '● ' : '╌ '}${EdgeStyle.legendLabel(isMaster)}</span><br>` +
         `<span style="opacity: 0.85;">${HtmlEscape.escape(rel.label)}</span>`,
         {

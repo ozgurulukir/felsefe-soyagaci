@@ -49,9 +49,11 @@ function setCount(html, id, value) {
 const expectedHeaderText = `${totalEntities} Düşünür • ${totalRelations} Bağlantı`;
 let html = fs.readFileSync(INDEX_HTML, 'utf8');
 
-// 1. Header stats metni
-const headerRegex = /(\d+ Düşünür • \d+ Bağlantı)/;
-html = html.replace(headerRegex, expectedHeaderText);
+// 1. Header stats metni — id hedeflenir (setCount ile aynı yaklaşım); düz
+//    metin araması ileride metne ikinci bir geçiş yapılırsa yanlış yeri
+//    güncelleyebileceğinden id'li elemente sabitlenir
+const headerRegex = /(id="header-stats-text">)\d+ Düşünür • \d+ Bağlantı/;
+html = html.replace(headerRegex, `$1${expectedHeaderText}`);
 
 // 2. count-all
 html = setCount(html, 'count-all', totalEntities);

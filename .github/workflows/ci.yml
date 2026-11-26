@@ -25,5 +25,11 @@ jobs:
       - name: Run test suite (node --test)
         run: npm test
 
+      - name: Verify index.html stat counters are in sync
+        run: node scripts/sync-stats.js --check
+
       - name: Build Tailwind CSS and sync index.html stats
         run: npm run build
+
+      - name: Fail on uncommitted build output (css/tailwind.css, index.html)
+        run: git diff --exit-code css/tailwind.css index.html

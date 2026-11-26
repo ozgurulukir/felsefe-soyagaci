@@ -3,8 +3,19 @@
  * 5. UYGULAMA KONTROLÖRÜ (APPLICATION CONTROLLER & UI)
  * =========================================================================
  */
-const graphDb = new PhilosophyGraphDatabase(RAW_ENTITIES, RAW_RELATIONS);
-const visAdapter = new GraphToVisAdapter(graphDb, { geo: window.PhilosophyGeo });
+// Graf veritabanı ve adapter kurulumu: veri katmanı şema doğrulamasında
+// hızlıca fırlatır (eksik alan, bilinmeyen dönem, kopuk ilişki). Ağ
+// kütüphanesi yokluğundaki dostane mesaj deseniyle aynı kullanıcı
+// deneyimini sunmak için kurulum try/catch ile sarılır; graphDb null
+// kalırsa DOMContentLoaded dinleyicisi boş sayfa yerine mesaj gösterir.
+let graphDb = null;
+let visAdapter = null;
+try {
+  graphDb = new PhilosophyGraphDatabase(RAW_ENTITIES, RAW_RELATIONS);
+  visAdapter = new GraphToVisAdapter(graphDb, { geo: window.PhilosophyGeo });
+} catch (e) {
+  console.error('[App] Veri katmanı yüklenemedi.', e);
+}
 
 let network = null;
 let nodesDataSet = null;
@@ -356,6 +367,14 @@ const searchDropdown = document.getElementById('search-dropdown');
 const searchClearBtn = document.getElementById('search-clear-btn');
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Veri katmanı kurulamadıysa (şema doğrulama hatası) çalışır durumda bir
+  // motora geçilemez; boş sayfa yerine ağ kütüphanesi mesajıyla aynı şablonu kullan
+  if (!graphDb) {
+    document.getElementById('network-container').innerHTML =
+      '<div class="h-full w-full flex items-center justify-center px-6 text-center text-sm text-slate-500 dark:text-slate-400">Veri yüklenemedi. Sayfayı yenileyin; sorun sürerse lütfen bildirin.</div>';
+    return;
+  }
+
   // UI namespace init — arama → yol bulucu → geo mod (modül yüklenme sırası)
   SearchUi.init({ graphDb, selectAndFocus });
   PathfinderUi.init({
