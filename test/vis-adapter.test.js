@@ -91,6 +91,19 @@ test('toVisGraph: ViewFilter tek geçişte çözülür, nodes+edges birlikte dö
   }
 });
 
+test('Düğüm etiketi HtmlEscape ile kaçırılır (font.multi HTML olarak çizer)', () => {
+  const db = makeFakeDb();
+  db.getAllEntities = () => [
+    { id: 'x1', era: 'antik', name: 'Ada <b>"Lorem"</b>', dates: '1900–<i>2000</i>' }
+  ];
+  const adapter = new GraphToVisAdapter(db);
+  const node = adapter.toVisNodes({ layoutType: 'UD', isDark: false, getEraTheme })[0];
+  assert.ok(node.label.includes('&lt;b&gt;'));
+  assert.ok(node.label.includes('&quot;Lorem&quot;'));
+  assert.ok(node.label.includes('&lt;i&gt;2000&lt;/i&gt;'));
+  assert.ok(!node.label.includes('<b>"'));
+});
+
 test('Donuk palet: koyu/açık tema renkleri değişmedi', () => {
   const adapter = new GraphToVisAdapter(makeFakeDb());
 

@@ -5,6 +5,15 @@
  * Vurgu/karartma kararları ViewFilter'da (js/core/view-filter.js) alınır;
  * bu adapter yalnızca vis-network piksel sabitleriyle state'i gösterir.
  */
+
+// HtmlEscape'e erişim: tarayıcıda global script (html-escape.js), Node testinde
+// require ile. Yalnızca çağrı gövdesinde çözülür (search.js ile aynı desen).
+function getHtmlEscape() {
+  if (typeof HtmlEscape !== 'undefined') return HtmlEscape;
+  if (typeof require === 'function') return require('./html-escape.js').HtmlEscape;
+  throw new Error('HtmlEscape tanımlı değil.');
+}
+
 class GraphToVisAdapter {
   // geo, veri katmanındaki koordinat sağlayıcısıdır (PhilosophyGeo); enjekte edilmezse
   // geo konumlandırma devre dışı kalır (non-geo davranış: fixed=false)
@@ -59,7 +68,9 @@ class GraphToVisAdapter {
     return {
       id: p.id,
       level: this._db.getLevel(p.id),
-      label: '<b>' + p.name + '</b>\n<i>' + p.dates + '</i>',
+      // Etiket vis-network font.multi:'html' ile HTML olarak çizilir; metin
+      // HtmlEscape'ten geçer (tarayıcıda global, Node'da require ile)
+      label: '<b>' + getHtmlEscape().escape(p.name) + '</b>\n<i>' + getHtmlEscape().escape(p.dates) + '</i>',
       shape: 'box',
       shapeProperties: {
         borderRadius: 10
