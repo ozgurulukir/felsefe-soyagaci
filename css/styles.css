@@ -315,6 +315,15 @@ input:focus-visible {
   scrollbar-width: none;
 }
 
+/* Arama kutusunda tarayıcının yerleşik temizle düğmesini gizle
+   (#search-clear-btn ile çift × görünümünü önler) */
+#search-input::-webkit-search-cancel-button,
+#search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
 /* =========================================================================
    8. COĞRAFİ DÜNYA HARİTASI (LEAFLET) STİLLERİ
    ========================================================================= */

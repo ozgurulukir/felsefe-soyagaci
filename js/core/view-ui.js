@@ -4,8 +4,8 @@
  * =========================================================================
  * VIEW-UI — Görünümden türetilen UI kararları (saf modül)
  * =========================================================================
- * app.js'in DOM işleyicilerinde elle kopyalanmış üç kararı tek SSOT'ta
- * toplar: odak bandı türü/seçimi, çekmece kapatma politikası ve geo motor
+ * app.js'in DOM işleyicilerinde elle kopyalanmış kararı tek SSOT'ta
+ * toplar: odak bandı türü/seçimi ve geo motor
  * / konteyner seçimi. app.js yalnızca sonucu render eder; politika burada.
  * Node.js'de (node --test) sahte db ile sınanabilir.
  */
@@ -44,17 +44,6 @@ const ViewUi = (function () {
   }
 
   /**
-   * Çekmece kapatma politikası: aktif etki zinciri varken çekmeceyi kapatmak
-   * zinciri korur; yoksa odak/ seçim tamamen temizlenir. Escape ve kapatma
-   * düğmesi aynı politikanın iki çağrıcısıdır.
-   * @param {{pathId?: string[]|null}} state
-   * @returns {'close-drawer'|'clear-focus'}
-   */
-  function drawerActionFor(state) {
-    return state.pathId ? 'close-drawer' : 'clear-focus';
-  }
-
-  /**
    * Geo motor/konteyner kararı: 2×2 matris (layout=geo?, geoAtlasMode?).
    *   visibleContainer: 'tiles'  → Leaflet karo haritası
    *                     'atlas'  → yerleşik vis-canvas Atlas
@@ -69,7 +58,7 @@ const ViewUi = (function () {
     return { isLeafletEngine, visibleContainer };
   }
 
-  return Object.freeze({ deriveBanner, drawerActionFor, deriveEngineState });
+  return Object.freeze({ deriveBanner, deriveEngineState });
 })();
 
 // Düğüm (global script) ve Node.js (test) ortamlarında aynı dosya çalışsın

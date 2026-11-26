@@ -398,11 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('drawer-close-btn').addEventListener('click', () => {
-    if (ViewUi.drawerActionFor({ pathId: currentHighlightPath }) === 'close-drawer') {
-      closeDrawer();
-    } else {
-      clearFocusAndSelection();
-    }
+    // Kart kapatınca node seçimi/vurgusu korunur; temizleme yalnızca boş tuval
+    // tıklaması veya 'Tüm Ağı Göster' düğmesiyle yapılır.
+    closeDrawer();
   });
   document.getElementById('clear-focus-btn').addEventListener('click', clearFocusAndSelection);
 
@@ -569,10 +567,10 @@ document.addEventListener('DOMContentLoaded', () => {
         layoutToggleBtn.setAttribute('aria-expanded', 'false');
       }
       if (searchWasOpen || menuWasOpen) return;
-      if (ViewUi.drawerActionFor({ pathId: currentHighlightPath }) === 'close-drawer') {
+      // Escape ile kartı kapatmak node seçimini korur (kapatma düğmesiyle aynı davranış)
+      const drawerEl = document.getElementById('detail-drawer');
+      if (drawerEl && !drawerEl.classList.contains('translate-x-[105%]')) {
         closeDrawer();
-      } else {
-        clearFocusAndSelection();
       }
     }
   });

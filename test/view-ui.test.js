@@ -62,12 +62,6 @@ test('Bant: yol bayatsa ve seçim de yoksa none döner', () => {
   assert.strictEqual(view.kind, 'none');
 });
 
-test('Çekmece politikası: yol varken close-drawer, yokken clear-focus', () => {
-  assert.strictEqual(ViewUi.drawerActionFor({ pathId: ['sokrates', 'platon'] }), 'close-drawer');
-  assert.strictEqual(ViewUi.drawerActionFor({ pathId: null }), 'clear-focus');
-  assert.strictEqual(ViewUi.drawerActionFor({}), 'clear-focus');
-});
-
 test('Motor: geo + karo → Leaflet etkin, tiles konteyneri görünür', () => {
   assert.deepStrictEqual(
     ViewUi.deriveEngineState({ layout: 'geo', geoAtlasMode: false }),
