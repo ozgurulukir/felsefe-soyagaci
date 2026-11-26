@@ -627,7 +627,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof network.setSize === 'function') {
           network.setSize('100%', '100%');
         }
-        network.setOptions(getNetworkOptions(currentLayout));
+        // vis-network hiyerarşik düzende kenarlar için 'edgeId:' önekli yardımcı düğümler
+        // üretir; hiyerarşi kapatılınca body.nodes'ta kalırlar ve UD/LR'ye dönüşte
+        // (level'siz oldukları için) düzen doğrulamasını patlatırlar — dönüşte temizle.
+        Object.keys(network.body.nodes).forEach(id => {
+          if (id.indexOf('edgeId:') === 0) {
+            delete network.body.nodes[id];
+          }
+        });
+        network.setOptions(window.LayoutOptions.getNetworkOptions(currentLayout));
 
         const unfixes = [];
         nodesDataSet.forEach(node => {
